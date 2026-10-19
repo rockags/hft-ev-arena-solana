@@ -1,0 +1,21 @@
+[package]
+name = "quant-arena"
+version = "0.2.0"
+description = "Non-Custodial Multi-Table HFT +EV Arena on Solana"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "quant_arena"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.30.1"
+anchor-spl = "0.30.1"
+solana-program = "1.18"

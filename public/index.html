@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ Solana Quant Arena v2 — High-Frequency +EV Protocol</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header Bar -->
+  <header class="top-header">
+    <div class="brand">
+      <span class="logo-bolt">⚡</span>
+      <div>
+        <h1 class="logo-title">SOLANA QUANT ARENA <span class="badge-v2">v2.0</span></h1>
+        <p class="logo-sub">Non-Custodial Multi-Table +EV Protocol & HFT Swarm Engine</p>
+      </div>
+    </div>
+
+    <div class="metrics-strip">
+      <div class="metric-item">
+        <span class="metric-label">TPS GLOBAL</span>
+        <span class="metric-val text-cyan" id="metric-tps">0 tiradas/s</span>
+      </div>
+      <div class="metric-item">
+        <span class="metric-label">BOTS ACTIVOS</span>
+        <span class="metric-val text-purple" id="metric-bots">0 bots</span>
+      </div>
+      <div class="metric-item">
+        <span class="metric-label">FONDO AUTO-REFUEL</span>
+        <span class="metric-val text-green" id="metric-cushion">$50.00 USD</span>
+      </div>
+      <div class="metric-item">
+        <span class="metric-label">EPOCH POOL (7D)</span>
+        <span class="metric-val text-gold" id="metric-epoch">$0.00 USD</span>
+      </div>
+    </div>
+
+    <div class="wallet-controls">
+      <button class="btn btn-secondary" id="btn-faucet">💧 Faucet Demo (+$25)</button>
+      <button class="btn btn-primary" id="btn-connect-wallet">👻 Conectar Phantom</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+    <!-- Active User Terminal Bar -->
+    <section class="user-terminal-bar">
+      <div class="user-info">
+        <span class="user-badge" id="user-badge">TRADER / BOT ID: <strong id="user-id-display">anon_guest</strong></span>
+        <span class="user-balance">Balance Escrow: <strong class="text-green" id="user-balance-display">$0.00 USD</strong></span>
+        <span class="user-rakeback">Rakeback Pendiente: <strong class="text-gold" id="user-rakeback-display">$0.00 USD</strong></span>
+      </div>
+      <div class="user-actions">
+        <button class="btn btn-sm btn-gold" id="btn-claim-rakeback" disabled>💸 Reclamar Cashback</button>
+        <button class="btn btn-sm btn-outline" id="btn-withdraw">🚀 Retirar SOL (No-Custodial)</button>
+      </div>
+    </section>
+
+    <!-- Multi-Table Radar Grid -->
+    <section class="section-title">
+      <h2>📡 RADAR MULTI-MESA ON-CHAIN (ARBITRAJE +EV EN VIVO)</h2>
+      <p>Los algoritmos enrutan automáticamente sus órdenes hacia la mesa con mayor retorno sobre la fricción.</p>
+    </section>
+
+    <div class="tables-grid">
+      <!-- Mesa 1: Flash -->
+      <div class="table-card" id="card-flash">
+        <div class="table-badge badge-flash">MESA 1: FLASH (0.2% FRICCIÓN)</div>
+        <h3 class="table-name">⚡ Micro Blitz ($0.10)</h3>
+        <div class="table-pot-box">
+          <span class="pot-title">BOTE PROGRESIVO</span>
+          <span class="pot-amount text-cyan" id="pot-flash">$10.00 USD</span>
+        </div>
+        <div class="ev-meter-box">
+          <div class="ev-meter-label">RETORNO ESPERADO (+EV):</div>
+          <div class="ev-percentage text-green" id="ev-flash">+145.0%</div>
+          <div class="ev-status text-green">🔥 ÓPTIMO PARA RÁFAGAS MICRO</div>
+        </div>
+        <div class="table-specs">
+          <div>Precio: <strong>$0.10 USD</strong></div>
+          <div>Soft-Refund: <strong>$0.0998</strong> (99.8%)</div>
+          <div>Jackpot: <strong>50% del Bote</strong></div>
+          <div>Micro-Hits: <strong>1 en 25 (4%)</strong></div>
+        </div>
+        <button class="btn btn-table btn-flash" onclick="triggerOrder('flash')">DISPARAR ORDEN ($0.10)</button>
+      </div>
+
+      <!-- Mesa 2: Classic -->
+      <div class="table-card featured" id="card-classic">
+        <div class="table-badge badge-classic">MESA 2: CLÁSICA (ESTÁNDAR)</div>
+        <h3 class="table-name">⚖️ Classic Arena ($1.00)</h3>
+        <div class="table-pot-box">
+          <span class="pot-title">BOTE PROGRESIVO</span>
+          <span class="pot-amount text-gold" id="pot-classic">$50.00 USD</span>
+        </div>
+        <div class="ev-meter-box">
+          <div class="ev-meter-label">RETORNO ESPERADO (+EV):</div>
+          <div class="ev-percentage text-gold" id="ev-classic">+185.0%</div>
+          <div class="ev-status text-gold">⚡ CONDICIÓN +EV ACTIVA</div>
+        </div>
+        <div class="table-specs">
+          <div>Precio: <strong>$1.00 USD</strong></div>
+          <div>Soft-Refund: <strong>$0.998</strong> (99.8%)</div>
+          <div>Jackpot: <strong>75% del Bote</strong></div>
+          <div>Major-Hits: <strong>1 en 111 (0.9%)</strong></div>
+        </div>
+        <button class="btn btn-table btn-classic" onclick="triggerOrder('classic')">DISPARAR ORDEN ($1.00)</button>
+      </div>
+
+      <!-- Mesa 3: Whale -->
+      <div class="table-card" id="card-whale">
+        <div class="table-badge badge-whale">MESA 3: THE WHALE (MACRO)</div>
+        <h3 class="table-name">🐋 Whale Syndicate ($10.00)</h3>
+        <div class="table-pot-box">
+          <span class="pot-title">BOTE PROGRESIVO</span>
+          <span class="pot-amount text-purple" id="pot-whale">$250.00 USD</span>
+        </div>
+        <div class="ev-meter-box">
+          <div class="ev-meter-label">RETORNO ESPERADO (+EV):</div>
+          <div class="ev-percentage text-purple" id="ev-whale">+242.5%</div>
+          <div class="ev-status text-purple">🚀 MEGA JACKPOT HUNTING</div>
+        </div>
+        <div class="table-specs">
+          <div>Precio: <strong>$10.00 USD</strong></div>
+          <div>Soft-Refund: <strong>$9.980</strong> (99.8%)</div>
+          <div>Jackpot: <strong>100% del Bote</strong></div>
+          <div>Micro-Hits: <strong>1 en 25 (4%)</strong></div>
+        </div>
+        <button class="btn btn-table btn-whale" onclick="triggerOrder('whale')">DISPARAR ORDEN ($10.00)</button>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Grid (Console Feed + Leaderboard) -->
+    <div class="dual-panel-grid">
+      <!-- Live Feed -->
+      <div class="panel-box">
+        <div class="panel-header">
+          <h3>📡 CONSOLA DE ÓRDENES & PROTOCOL TELEMETRY</h3>
+          <span class="live-dot"></span>
+        </div>
+        <div class="console-stream" id="console-stream">
+          <div class="log-row info">[SISTEMA] Conectando a la red de alta frecuencia de Solana...</div>
+        </div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="panel-box">
+        <div class="panel-header">
+          <h3>🏆 LEADERBOARD DE BOTS (EPOCH POOL 7D)</h3>
+          <span class="text-gold">Reparto: 10% de comisiones</span>
+        </div>
+        <div class="table-responsive">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Bot / Wallet</th>
+                <th>Tiradas</th>
+                <th>Volumen</th>
+                <th>Rakeback Ganado</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+              <tr><td colspan="4" class="text-muted">Esperando actividad de bots...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Provably Fair Verification Footer -->
+    <footer class="proof-footer">
+      <div>
+        <strong>🛡️ Verificación Criptográfica Provably Fair (HMAC-SHA256):</strong>
+        <span class="text-muted" id="server-seed-hash">Hash: Cargando...</span>
+      </div>
+      <div class="proof-links">
+        <a href="https://github.com/rockags/hft-ev-arena-solana" target="_blank">Repositorio en GitHub</a>
+        <span>•</span>
+        <a href="/api/stats" target="_blank">API Telemetría JSON</a>
+      </div>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

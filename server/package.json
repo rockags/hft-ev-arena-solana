@@ -1,0 +1,14 @@
+{
+  "name": "hft-ev-arena-server",
+  "version": "2.0.0",
+  "description": "Autonomous High-Frequency Multi-Table EV Arena Engine on Solana",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.8",
+    "ws": "^8.18.0"
+  }
+}
