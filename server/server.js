@@ -3,11 +3,35 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { WebSocketServer } = require('ws');
 const { MultiTableArenaEngine } = require('./engine');
+const { SolanaVault } = require('./solana-vault');
 
 const PORT = process.env.PORT || 8080;
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
 const engine = new MultiTableArenaEngine();
+const vault = new SolanaVault();
+
+// Start Solana Live Deposit Watcher (Listens for Real SOL on Mainnet)
+vault.startDepositWatcher(({ sender, amountSol, amountUsd, signature }) => {
+  const explorerUrl = `https://solscan.io/tx/${signature}`;
+  const credit = engine.creditRealDeposit(sender, amountSol, amountUsd, signature, explorerUrl);
+
+  broadcast({
+    type: 'REAL_DEPOSIT_CONFIRMED',
+    sender,
+    amountSol,
+    amountUsd,
+    balanceReal: credit.balanceReal,
+    signature,
+    explorerUrl,
+    timestamp: Date.now()
+  });
+
+  console.log(`\n🟢 [REAL ON-CHAIN DEPOSIT DETECTED]`);
+  console.log(`- From     : ${sender}`);
+  console.log(`- Amount   : ${amountSol} SOL (~$${amountUsd} USD)`);
+  console.log(`- Solscan  : ${explorerUrl}\n`);
+});
 
 // Throughput tracking
 let lastSecRolls = 0;
@@ -62,16 +86,22 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
   const pathname = parsedUrl.pathname;
 
-  // API Endpoints
+  // 1. Partitioned Global Stats
   if (pathname === '/api/stats') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
+    const vaultBal = await vault.getVaultBalance();
     return res.end(JSON.stringify({
       success: true,
       rollsPerSecond,
+      vaultInfo: {
+        ...vaultBal,
+        solscanUrl: `https://solscan.io/account/${vault.getVaultAddress()}`
+      },
       ...engine.getProtocolStats()
     }));
   }
 
+  // 2. Real-time EV Radar
   if (pathname === '/api/radar') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({
@@ -80,19 +110,32 @@ const server = http.createServer(async (req, res) => {
     }));
   }
 
-  // Faucet / Demo Deposit for Instant Dev Testing
+  // 3. Vault On-Chain Info
+  if (pathname === '/api/vault/info') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    const bal = await vault.getVaultBalance();
+    return res.end(JSON.stringify({
+      ...bal,
+      solscanUrl: `https://solscan.io/account/${vault.getVaultAddress()}`,
+      solUsdRate: vault.getSolUsdRate(),
+      rateSource: vault.getRateSource()
+    }));
+  }
+
+  // 4. Demo Virtual Faucet
   if (pathname === '/api/deposit/demo' && req.method === 'POST') {
     try {
       const { playerId, amount } = await parseJsonBody(req);
       const targetId = playerId || 'quant_tester';
       const depositAmt = Math.min(Number(amount) || 25.00, 100.00);
-      const newBal = engine.creditDeposit(targetId, depositAmt);
+      const newBal = engine.creditDemoFaucet(targetId, depositAmt);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({
         success: true,
+        mode: "DEMO_SANDBOX",
         message: `Fondeados $${depositAmt.toFixed(2)} USD virtuales para pruebas`,
         playerId: targetId,
-        balance: newBal
+        balanceDemo: newBal
       }));
     } catch (err) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -100,7 +143,25 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // Serve static public assets
+  // 5. Withdrawal (Real Balance Only)
+  if (pathname === '/api/withdraw' && req.method === 'POST') {
+    try {
+      const { playerId, destinationAddress, amountUSD } = await parseJsonBody(req);
+      const debitRes = engine.debitWithdrawal(playerId, Number(amountUSD));
+      if (!debitRes.success) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify(debitRes));
+      }
+      const txRes = await vault.withdrawSOL(destinationAddress, Number(amountUSD));
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true, ...txRes }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+  }
+
+  // Serve static assets
   let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     filePath = path.join(PUBLIC_DIR, 'index.html');
@@ -128,7 +189,7 @@ function broadcast(obj) {
   }
 }
 
-// 250ms Live Telemetry Pulse (Supports v2 RADAR_TICK and v1 TICKER)
+// 250ms Live Telemetry Pulse
 setInterval(() => {
   if (wss.clients.size > 0) {
     const radar = engine.getRadarTelemetry();
@@ -137,15 +198,15 @@ setInterval(() => {
       rollsPerSecond,
       activeClients: wss.clients.size,
       radar,
-      epochPool: engine.epochPool,
-      cushionReserve: engine.cushionReserve,
+      realStats: engine.realStats,
+      demoStats: engine.demoStats,
       timestamp: Date.now(),
       // Legacy v1 backward compatibility
       pot: engine.tables.classic.pot,
       currentPot: engine.tables.classic.pot
     });
 
-    // Also broadcast legacy TICKER for v1 bots
+    // Legacy TICKER broadcast
     broadcast({
       type: 'TICKER',
       pot: engine.tables.classic.pot,
@@ -164,7 +225,6 @@ wss.on('connection', (ws) => {
       const msg = JSON.parse(raw);
 
       switch (msg.action) {
-        // Ultra-fast latency ping
         case 'ping': {
           ws.send(JSON.stringify({
             type: 'pong',
@@ -177,26 +237,26 @@ wss.on('connection', (ws) => {
           break;
         }
 
-        // Authenticate Bot / User
         case 'auth': {
           authenticatedPlayerId = msg.playerId || `bot_${Math.random().toString(36).substring(2, 7)}`;
           const player = engine.getOrCreatePlayer(authenticatedPlayerId, msg.clientSeed);
-          
+
           ws.send(JSON.stringify({
             type: 'AUTH_SUCCESS',
             playerId: player.id,
-            balance: player.balance,
-            rakebackPending: player.rakebackPending,
+            isVerifiedOnChain: player.isVerifiedOnChain,
+            balanceReal: player.balanceReal,
+            balanceDemo: player.balanceDemo,
+            rakebackReal: player.rakebackReal,
+            rakebackDemo: player.rakebackDemo,
             clientSeed: player.clientSeed,
             serverSeedHash: engine.serverSeedHash,
             radar: engine.getRadarTelemetry(),
-            // Legacy v1 compatibility
             currentPot: engine.tables.classic.pot
           }));
           break;
         }
 
-        // Execute Order on Specific Table (Supports v2 'order' and v1 'open_pack')
         case 'open_pack':
         case 'order': {
           if (!authenticatedPlayerId) {
@@ -211,21 +271,21 @@ wss.on('connection', (ws) => {
             else tableKey = 'classic';
           }
 
-          const result = engine.executeOrder(authenticatedPlayerId, tableKey);
+          const mode = msg.mode || 'AUTO'; // 'REAL' | 'DEMO' | 'AUTO'
+          const result = engine.executeOrder(authenticatedPlayerId, tableKey, mode);
           currentRolls++;
 
-          // v2 Standard Response
           ws.send(JSON.stringify({
             type: 'ORDER_RESULT',
             ...result
           }));
 
-          // v1 Legacy Bot Response
+          // Legacy PACK_RESULT
           ws.send(JSON.stringify({
             type: 'PACK_RESULT',
             playerId: authenticatedPlayerId,
             success: result.success,
-            balance: result.newBalance,
+            balance: result.activeBalance,
             hitType: result.hitType,
             roll: result.roll,
             payout: result.payout,
@@ -235,10 +295,11 @@ wss.on('connection', (ws) => {
             currentPot: result.currentPot
           }));
 
-          // If a jackpot or major hit was struck, broadcast alert to all bots
           if (result.success && result.isBonus) {
             broadcast({
               type: 'BONUS_ALERT',
+              isReal: result.isReal,
+              modeLabel: result.modeLabel,
               tableKey,
               tableName: result.tableName,
               hitType: result.hitType,
@@ -247,7 +308,6 @@ wss.on('connection', (ws) => {
               newPot: result.currentPot
             });
 
-            // Legacy alert
             broadcast({
               type: 'JACKPOT_ALERT',
               winner: authenticatedPlayerId,
@@ -259,14 +319,12 @@ wss.on('connection', (ws) => {
             broadcast({
               type: 'AUTO_REFUEL_ALERT',
               tableKey,
-              newPot: result.currentPot,
-              remainingCushion: engine.cushionReserve
+              newPot: result.currentPot
             });
           }
           break;
         }
 
-        // Claim Rakeback
         case 'claim_rakeback': {
           if (!authenticatedPlayerId) {
             ws.send(JSON.stringify({ type: 'ERROR', error: 'No autenticado.' }));
@@ -291,9 +349,9 @@ wss.on('connection', (ws) => {
 
 server.listen(PORT, () => {
   console.log(`==================================================================`);
-  console.log(`⚡ SOLANA QUANT ARENA v2 — ENGINE & WEBSOCKET ONLINE ⚡`);
-  console.log(`📍 Web Terminal : http://localhost:${PORT}`);
-  console.log(`📡 WebSocket    : ws://localhost:${PORT}`);
-  console.log(`🎲 Mesas Activas: FLASH ($0.10) | CLASSIC ($1.00) | WHALE ($10.00)`);
+  console.log(`⚡ SOLANA QUANT ARENA v2 — PARTITIONED ENGINE ACTIVE ⚡`);
+  console.log(`🟢 On-Chain Vault : ${vault.getVaultAddress()}`);
+  console.log(`📍 Web Terminal   : http://localhost:${PORT}`);
+  console.log(`📡 WebSocket Feed : ws://localhost:${PORT}`);
   console.log(`==================================================================\n`);
 });

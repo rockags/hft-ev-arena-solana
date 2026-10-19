@@ -45,16 +45,78 @@
 
   <!-- Main Container -->
   <main class="main-content">
+    
+    <!-- DUAL REAL VS DEMO AUDIT BANNER -->
+    <div class="dual-audit-banner">
+      <!-- 🟢 REAL ON-CHAIN BOX -->
+      <div class="audit-card real-card">
+        <div class="audit-header">
+          <span class="badge-pill green">🟢 AUDITORÍA ON-CHAIN (SOLANA MAINNET REAL)</span>
+          <a href="https://solscan.io/account/3u6pHbfXqiDJLMxpLtXvUxGiC1Twwo2v9aaHBxo839GM" target="_blank" class="audit-link">Ver en Solscan ↗</a>
+        </div>
+        <div class="audit-stats-grid">
+          <div class="audit-stat">
+            <span class="stat-lbl">SALDO REAL EN BÓVEDA:</span>
+            <span class="stat-num text-green" id="vault-real-sol">0.00089 SOL (~$0.09 USD)</span>
+          </div>
+          <div class="audit-stat">
+            <span class="stat-lbl">VOLUMEN REAL TRANSACCIONADO:</span>
+            <span class="stat-num" id="stat-real-volume">$0.00 USD</span>
+          </div>
+          <div class="audit-stat">
+            <span class="stat-lbl">GANANCIA REAL CASA (FUNDADOR):</span>
+            <span class="stat-num text-gold" id="stat-real-profit">$0.00 USD (0.000 SOL)</span>
+          </div>
+          <div class="audit-stat">
+            <span class="stat-lbl">DEPÓSITOS ON-CHAIN VERIFICADOS:</span>
+            <span class="stat-num text-cyan" id="stat-real-deposits">0 depósitos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🟡 DEMO SANDBOX BOX -->
+      <div class="audit-card demo-card">
+        <div class="audit-header">
+          <span class="badge-pill yellow">🟡 MODO SIMULADOR / SANDBOX (VIRTUAL)</span>
+          <span class="audit-tag">Pruebas sin riesgo</span>
+        </div>
+        <div class="audit-stats-grid">
+          <div class="audit-stat">
+            <span class="stat-lbl">VOLUMEN SIMULADO:</span>
+            <span class="stat-num text-muted" id="stat-demo-volume">$0.00 USD</span>
+          </div>
+          <div class="audit-stat">
+            <span class="stat-lbl">TIRADAS DEMO:</span>
+            <span class="stat-num text-muted" id="stat-demo-rolls">0 tiradas</span>
+          </div>
+          <div class="audit-stat">
+            <span class="stat-lbl">GANANCIA DEMO VIRTUAL:</span>
+            <span class="stat-num text-muted" id="stat-demo-profit">$0.00 USD</span>
+          </div>
+          <div class="audit-stat">
+            <span class="stat-lbl">ESTADO FAUCET:</span>
+            <span class="stat-num text-green">DISPONIBLE (+$25)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Active User Terminal Bar -->
     <section class="user-terminal-bar">
       <div class="user-info">
-        <span class="user-badge" id="user-badge">TRADER / BOT ID: <strong id="user-id-display">anon_guest</strong></span>
-        <span class="user-balance">Balance Escrow: <strong class="text-green" id="user-balance-display">$0.00 USD</strong></span>
-        <span class="user-rakeback">Rakeback Pendiente: <strong class="text-gold" id="user-rakeback-display">$0.00 USD</strong></span>
+        <span class="user-badge" id="user-badge">TRADER ID: <strong id="user-id-display">anon_guest</strong></span>
+        <span class="user-balance">🟢 Saldo Real: <strong class="text-green" id="user-real-balance">$0.00 USD</strong></span>
+        <span class="user-balance">🟡 Saldo Demo: <strong class="text-gold" id="user-demo-balance">$0.00 USD</strong></span>
+        <span class="user-rakeback">Rakeback: <strong class="text-gold" id="user-rakeback-display">$0.00 USD</strong></span>
       </div>
       <div class="user-actions">
+        <select id="select-play-mode" class="mode-select">
+          <option value="AUTO">⚡ Modo: Automático (Usa Real si fondeado, sino Demo)</option>
+          <option value="REAL">🟢 Modo: Solo Real (Solana On-Chain)</option>
+          <option value="DEMO">🟡 Modo: Solo Demo (Prueba Virtual)</option>
+        </select>
         <button class="btn btn-sm btn-gold" id="btn-claim-rakeback" disabled>💸 Reclamar Cashback</button>
-        <button class="btn btn-sm btn-outline" id="btn-withdraw">🚀 Retirar SOL (No-Custodial)</button>
+        <button class="btn btn-sm btn-outline" id="btn-withdraw">🚀 Retirar SOL Real</button>
       </div>
     </section>
 
@@ -137,19 +199,22 @@
       <!-- Live Feed -->
       <div class="panel-box">
         <div class="panel-header">
-          <h3>📡 CONSOLA DE ÓRDENES & PROTOCOL TELEMETRY</h3>
+          <h3>📡 CONSOLA DE ÓRDENES & AUDITORÍA EN TIEMPO REAL</h3>
           <span class="live-dot"></span>
         </div>
         <div class="console-stream" id="console-stream">
-          <div class="log-row info">[SISTEMA] Conectando a la red de alta frecuencia de Solana...</div>
+          <div class="log-row info">[SISTEMA] Motor particionado activo. Conectado a Solana Mainnet RPC...</div>
         </div>
       </div>
 
-      <!-- Leaderboard -->
+      <!-- Leaderboard with Tabs -->
       <div class="panel-box">
         <div class="panel-header">
-          <h3>🏆 LEADERBOARD DE BOTS (EPOCH POOL 7D)</h3>
-          <span class="text-gold">Reparto: 10% de comisiones</span>
+          <h3>🏆 LEADERBOARD DE BOTS</h3>
+          <div class="tab-buttons">
+            <button class="tab-btn active" id="tab-btn-real" onclick="switchLeaderboardTab('REAL')">🟢 On-Chain Real</button>
+            <button class="tab-btn" id="tab-btn-demo" onclick="switchLeaderboardTab('DEMO')">🟡 Simulador Demo</button>
+          </div>
         </div>
         <div class="table-responsive">
           <table class="leaderboard-table">
@@ -159,10 +224,11 @@
                 <th>Tiradas</th>
                 <th>Volumen</th>
                 <th>Rakeback Ganado</th>
+                <th>Estado</th>
               </tr>
             </thead>
             <tbody id="leaderboard-body">
-              <tr><td colspan="4" class="text-muted">Esperando actividad de bots...</td></tr>
+              <tr><td colspan="5" class="text-muted">Cargando clasificación...</td></tr>
             </tbody>
           </table>
         </div>
@@ -176,6 +242,8 @@
         <span class="text-muted" id="server-seed-hash">Hash: Cargando...</span>
       </div>
       <div class="proof-links">
+        <a href="https://solscan.io/account/3u6pHbfXqiDJLMxpLtXvUxGiC1Twwo2v9aaHBxo839GM" target="_blank">🔍 Ver Bóveda en Solscan</a>
+        <span>•</span>
         <a href="https://github.com/rockags/hft-ev-arena-solana" target="_blank">Repositorio en GitHub</a>
         <span>•</span>
         <a href="/api/stats" target="_blank">API Telemetría JSON</a>
