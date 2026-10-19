@@ -40,8 +40,8 @@ except ImportError:
     print("Instálala ejecutando: pip install websocket-client")
     sys.exit(1)
 
-# Default Server Endpoint (Local or Cloud Run)
-SERVER_WS = "ws://localhost:8080"
+# Default Live Server Endpoint (Google Cloud Run High-Frequency Cluster)
+SERVER_WS = "ws://localhost:8080" if "--local" in sys.argv else "wss://gacha-protocol-628421927095.us-central1.run.app"
 BOT_ID = f"quant_sniper_{int(time.time()) % 100000}"
 
 # Strategy Thresholds
