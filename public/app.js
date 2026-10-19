@@ -1,7 +1,13 @@
 // Solana Quant Arena v2 — Frontend Engine Client (Strict Real vs Demo Partition)
 
-let ws = null;
-let currentUserId = localStorage.getItem('quant_user_id') || `trader_${Math.random().toString(36).substring(2, 7)}`;
+// Purge any stale compromised or legacy addresses from browser localStorage
+let rawSavedId = localStorage.getItem('quant_user_id');
+if (!rawSavedId || rawSavedId.includes('3u6p') || rawSavedId === '3u6pHbfXqiDJLMxpLtXvUxGiC1Twwo2v9aaHBxo839GM') {
+  localStorage.removeItem('quant_user_id');
+  rawSavedId = `trader_${Math.random().toString(36).substring(2, 7)}`;
+  localStorage.setItem('quant_user_id', rawSavedId);
+}
+let currentUserId = rawSavedId;
 let balanceReal = 0.00;
 let balanceDemo = 0.00;
 let userRakeback = 0.00;
@@ -292,6 +298,12 @@ async function fetchProtocolStats() {
       cachedStats = data;
       if (data.vaultInfo && data.vaultInfo.sol !== undefined) {
         document.getElementById('vault-real-sol').textContent = `${data.vaultInfo.sol.toFixed(5)} SOL (~$${data.vaultInfo.usdEquivalent.toFixed(2)} USD)`;
+        if (data.vaultInfo.address) {
+          const auditLinks = document.querySelectorAll('.audit-link, .proof-links a[href*="solscan"]');
+          auditLinks.forEach(link => {
+            link.href = `https://solscan.io/account/${data.vaultInfo.address}`;
+          });
+        }
       }
       if (data.realStats) {
         document.getElementById('stat-real-volume').textContent = `$${data.realStats.realVolumeUSD.toFixed(2)} USD`;

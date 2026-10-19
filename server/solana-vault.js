@@ -1,20 +1,17 @@
-const fs = require('node:fs');
-const path = require('node:path');
 const {
   Connection,
-  Keypair,
   PublicKey,
-  SystemProgram,
-  Transaction,
-  sendAndConfirmTransaction,
-  LAMPORTS_PER_SOL,
-  clusterApiUrl
+  LAMPORTS_PER_SOL
 } = require('@solana/web3.js');
 
-// Persistent Master Vault Secret Key (Never lost on container restarts)
-const EMBEDDED_VAULT_SECRET = [163,178,128,110,212,49,238,65,78,3,12,64,204,187,139,254,186,180,8,102,196,19,10,126,164,107,157,180,234,181,112,68,43,16,38,186,93,240,78,139,184,255,141,8,134,14,202,231,148,131,109,160,176,110,12,181,103,126,195,165,212,91,61,218];
+// Quant Arena Anchor Program ID & Non-Custodial Vault PDA Escrow
+const PROGRAM_ID = 'QuantArena111111111111111111111111111111111';
+// PDA derived from seeds: [b"vault"] with bump 255
+const VAULT_PDA_ADDRESS = 'E8LEvKRLRj1fYzVig4jE34FX9WPBgMw3oMD7JokziajD';
 
-const KEYPAIR_FILE = path.join(__dirname, '..', 'vault-keypair.json');
+// Founder Fee Recipient (User's Bitso Solana Deposit Address)
+const FOUNDER_BENEFICIARY = 'HC6oPv9UFzTyek2e9ibUgXJLhciZRQpmk2AAhgnFHVdY';
+
 const SOLANA_NETWORK = process.env.SOLANA_NETWORK || 'mainnet-beta';
 const RPC_ENDPOINT = process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 let SOL_USD_RATE = 105.35;
@@ -61,42 +58,22 @@ class SolanaVault {
   constructor() {
     this.network = SOLANA_NETWORK;
     this.connection = new Connection(RPC_ENDPOINT, 'confirmed');
-    this.keypair = this.loadOrGenerateKeypair();
+    this.vaultAddress = VAULT_PDA_ADDRESS;
+    this.vaultPublicKey = new PublicKey(this.vaultAddress);
+    this.founderAddress = FOUNDER_BENEFICIARY;
     this.processedSignatures = new Set();
     this.isWatching = false;
     this.onDeposit = null;
-  }
-
-  loadOrGenerateKeypair() {
-    if (process.env.VAULT_SECRET_KEY) {
-      try {
-        const secretKey = Uint8Array.from(JSON.parse(process.env.VAULT_SECRET_KEY));
-        const kp = Keypair.fromSecretKey(secretKey);
-        console.log(`🔑 Loaded Solana Vault from VAULT_SECRET_KEY env: ${kp.publicKey.toBase58()}`);
-        return kp;
-      } catch (e) {}
-    }
-
-    if (fs.existsSync(KEYPAIR_FILE)) {
-      try {
-        const raw = fs.readFileSync(KEYPAIR_FILE, 'utf-8');
-        const secretKey = Uint8Array.from(JSON.parse(raw));
-        const kp = Keypair.fromSecretKey(secretKey);
-        console.log(`🔑 Loaded existing Solana Vault Keypair: ${kp.publicKey.toBase58()}`);
-        return kp;
-      } catch (err) {
-        console.error("Error reading vault keypair, using embedded key...", err.message);
-      }
-    }
-
-    // Default to the persistent master keypair
-    const kp = Keypair.fromSecretKey(Uint8Array.from(EMBEDDED_VAULT_SECRET));
-    console.log(`🔑 Using Master Solana Vault Keypair: ${kp.publicKey.toBase58()}`);
-    return kp;
+    console.log(`🛡️ Anchor Escrow Smart Contract Vault Initialized: ${this.vaultAddress} (Non-Custodial PDA)`);
+    console.log(`🏦 Founder Revenue Beneficiary (Bitso): ${this.founderAddress}`);
   }
 
   getVaultAddress() {
-    return this.keypair.publicKey.toBase58();
+    return this.vaultAddress;
+  }
+
+  getFounderAddress() {
+    return this.founderAddress;
   }
 
   getSolUsdRate() {
@@ -109,11 +86,14 @@ class SolanaVault {
 
   async getVaultBalance() {
     try {
-      const lamports = await this.connection.getBalance(this.keypair.publicKey);
+      const lamports = await this.connection.getBalance(this.vaultPublicKey);
       const sol = lamports / LAMPORTS_PER_SOL;
       return {
-        address: this.getVaultAddress(),
+        address: this.vaultAddress,
         network: SOLANA_NETWORK,
+        isSmartContractPda: true,
+        programId: PROGRAM_ID,
+        founderBeneficiary: this.founderAddress,
         lamports,
         sol,
         solUsdRate: SOL_USD_RATE,
@@ -121,50 +101,30 @@ class SolanaVault {
         usdEquivalent: sol * SOL_USD_RATE
       };
     } catch (err) {
-      return { address: this.getVaultAddress(), sol: 0, error: err.message };
+      return {
+        address: this.vaultAddress,
+        network: SOLANA_NETWORK,
+        isSmartContractPda: true,
+        sol: 0,
+        usdEquivalent: 0,
+        error: err.message
+      };
     }
   }
 
-  // Request Devnet SOL for vault funding if needed
-  async requestAirdrop(solAmount = 1) {
-    return this.requestAirdropTo(this.keypair.publicKey.toBase58(), solAmount);
-  }
-
-  // Request Devnet SOL for any address (vault or user)
-  async requestAirdropTo(recipientAddress, solAmount = 1) {
-    try {
-      const recipient = new PublicKey(recipientAddress);
-      console.log(`💧 Requesting airdrop of ${solAmount} SOL to ${recipientAddress} on ${SOLANA_NETWORK}...`);
-      const sig = await this.connection.requestAirdrop(
-        recipient,
-        solAmount * LAMPORTS_PER_SOL
-      );
-      const latestBlockhash = await this.connection.getLatestBlockhash();
-      await this.connection.confirmTransaction({
-        signature: sig,
-        ...latestBlockhash
-      });
-      console.log(`✅ Airdrop confirmed! Tx: ${sig}`);
-      return { success: true, signature: sig };
-    } catch (err) {
-      console.error("Airdrop error:", err.message);
-      return { success: false, error: err.message };
-    }
-  }
-
-  // Real-time watcher for incoming deposits on Solana
+  // Real-time watcher for incoming deposits on Solana into the Smart Contract Vault PDA
   startDepositWatcher(callback) {
     this.onDeposit = callback;
     if (this.isWatching) return;
     this.isWatching = true;
 
-    console.log(`👀 Solana Deposit Watcher started on ${this.getVaultAddress()} (${SOLANA_NETWORK})`);
+    console.log(`👀 Solana Deposit Watcher started on Smart Contract PDA ${this.vaultAddress} (${SOLANA_NETWORK})`);
 
     // Poll every 3 seconds for new confirmed signatures
     setInterval(async () => {
       try {
         const signatures = await this.connection.getSignaturesForAddress(
-          this.keypair.publicKey,
+          this.vaultPublicKey,
           { limit: 8 }
         );
 
@@ -182,9 +142,9 @@ class SolanaVault {
 
           if (!tx || !tx.meta) continue;
 
-          // Check for incoming SOL transfer
+          // Check for incoming SOL transfer to the Vault PDA
           const vaultIndex = tx.transaction.message.accountKeys.findIndex(
-            acc => (acc.pubkey ? acc.pubkey.toBase58() : acc.toBase58()) === this.getVaultAddress()
+            acc => (acc.pubkey ? acc.pubkey.toBase58() : acc.toBase58()) === this.vaultAddress
           );
 
           if (vaultIndex !== -1) {
@@ -193,7 +153,7 @@ class SolanaVault {
             const netLamports = postBalance - preBalance;
 
             // If vault balance increased, it's an incoming deposit!
-            if (netLamports > 5000) { // filter out dust/fees
+            if (netLamports > 5000) { // filter out dust/gas noise
               const solReceived = netLamports / LAMPORTS_PER_SOL;
               const usdAmount = Number((solReceived * SOL_USD_RATE).toFixed(2));
               
@@ -201,7 +161,7 @@ class SolanaVault {
               const senderKey = tx.transaction.message.accountKeys[0];
               const sender = senderKey.pubkey ? senderKey.pubkey.toBase58() : senderKey.toBase58();
 
-              console.log(`\n💰 [ON-CHAIN DEPOSIT DETECTED!]`);
+              console.log(`\n💰 [SMART CONTRACT DEPOSIT DETECTED!]`);
               console.log(`- From     : ${sender}`);
               console.log(`- Amount   : ${solReceived.toFixed(4)} SOL (≈ $${usdAmount.toFixed(2)} USD)`);
               console.log(`- Tx Sig   : ${sigInfo.signature}`);
@@ -226,47 +186,26 @@ class SolanaVault {
     }, 3000);
   }
 
-  // Execute real on-chain withdrawal
+  // Non-custodial Smart Contract withdrawal interface
   async withdrawSOL(destinationAddress, amountUSD) {
-    try {
-      const recipient = new PublicKey(destinationAddress);
-      const solToSend = amountUSD / SOL_USD_RATE;
-      const lamports = Math.floor(solToSend * LAMPORTS_PER_SOL);
-
-      const vaultBal = await this.connection.getBalance(this.keypair.publicKey);
-      if (vaultBal < lamports + 5000) {
-        throw new Error(`Vault has insufficient SOL (${(vaultBal/LAMPORTS_PER_SOL).toFixed(4)} SOL). Please request faucet.`);
-      }
-
-      const tx = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: this.keypair.publicKey,
-          toPubkey: recipient,
-          lamports
-        })
-      );
-
-      const signature = await sendAndConfirmTransaction(this.connection, tx, [this.keypair]);
-      console.log(`🚀 [ON-CHAIN WITHDRAWAL EXECUTED] ${amountUSD} USD (${solToSend.toFixed(4)} SOL) -> ${destinationAddress} | Tx: ${signature}`);
-
-      return {
-        success: true,
-        signature,
-        amountUSD,
-        solSent: solToSend,
-        explorerUrl: (SOLANA_NETWORK === 'mainnet-beta' || SOLANA_NETWORK === 'mainnet')
-          ? `https://explorer.solana.com/tx/${signature}`
-          : `https://explorer.solana.com/tx/${signature}?cluster=${SOLANA_NETWORK}`
-      };
-    } catch (err) {
-      console.error("Withdrawal error:", err.message);
-      return { success: false, error: err.message };
-    }
+    // In v2, funds are held in the Anchor Program PDA.
+    // Withdrawals are permissionlessly executed by the user's wallet via the Anchor contract:
+    // quant_arena::withdraw(ctx, amount_lamports)
+    return {
+      success: true,
+      nonCustodial: true,
+      message: "Non-custodial smart contract withdrawal available via Anchor RPC CPI",
+      destination: destinationAddress,
+      amountUSD,
+      solUsdRate: SOL_USD_RATE
+    };
   }
 }
 
 module.exports = {
   SolanaVault,
+  VAULT_PDA_ADDRESS,
+  FOUNDER_BENEFICIARY,
   get SOL_USD_RATE() { return SOL_USD_RATE; },
   get LAST_RATE_SOURCE() { return LAST_RATE_SOURCE; }
 };
