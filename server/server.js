@@ -128,17 +128,30 @@ function broadcast(obj) {
   }
 }
 
-// 250ms Live Telemetry Pulse
+// 250ms Live Telemetry Pulse (Supports v2 RADAR_TICK and v1 TICKER)
 setInterval(() => {
   if (wss.clients.size > 0) {
+    const radar = engine.getRadarTelemetry();
     broadcast({
       type: 'RADAR_TICK',
       rollsPerSecond,
       activeClients: wss.clients.size,
-      radar: engine.getRadarTelemetry(),
+      radar,
       epochPool: engine.epochPool,
       cushionReserve: engine.cushionReserve,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      // Legacy v1 backward compatibility
+      pot: engine.tables.classic.pot,
+      currentPot: engine.tables.classic.pot
+    });
+
+    // Also broadcast legacy TICKER for v1 bots
+    broadcast({
+      type: 'TICKER',
+      pot: engine.tables.classic.pot,
+      currentPot: engine.tables.classic.pot,
+      activeClients: wss.clients.size,
+      rollsPerSecond
     });
   }
 }, 250);
@@ -158,7 +171,8 @@ wss.on('connection', (ws) => {
             clientTimestamp: msg.timestamp,
             serverTimestamp: Date.now(),
             activeClients: wss.clients.size,
-            radar: engine.getRadarTelemetry()
+            radar: engine.getRadarTelemetry(),
+            pot: engine.tables.classic.pot
           }));
           break;
         }
@@ -175,25 +189,50 @@ wss.on('connection', (ws) => {
             rakebackPending: player.rakebackPending,
             clientSeed: player.clientSeed,
             serverSeedHash: engine.serverSeedHash,
-            radar: engine.getRadarTelemetry()
+            radar: engine.getRadarTelemetry(),
+            // Legacy v1 compatibility
+            currentPot: engine.tables.classic.pot
           }));
           break;
         }
 
-        // Execute Order on Specific Table
+        // Execute Order on Specific Table (Supports v2 'order' and v1 'open_pack')
+        case 'open_pack':
         case 'order': {
           if (!authenticatedPlayerId) {
             ws.send(JSON.stringify({ type: 'ERROR', error: 'No autenticado. Envía {action: "auth"} primero.' }));
             return;
           }
 
-          const tableKey = msg.table || 'classic';
+          let tableKey = msg.table;
+          if (!tableKey) {
+            if (msg.tier === 'gold') tableKey = 'whale';
+            else if (msg.tier === 'bronze') tableKey = 'classic';
+            else tableKey = 'classic';
+          }
+
           const result = engine.executeOrder(authenticatedPlayerId, tableKey);
           currentRolls++;
 
+          // v2 Standard Response
           ws.send(JSON.stringify({
             type: 'ORDER_RESULT',
             ...result
+          }));
+
+          // v1 Legacy Bot Response
+          ws.send(JSON.stringify({
+            type: 'PACK_RESULT',
+            playerId: authenticatedPlayerId,
+            success: result.success,
+            balance: result.newBalance,
+            hitType: result.hitType,
+            roll: result.roll,
+            payout: result.payout,
+            netChange: result.netChange,
+            bonusWon: result.bonusWon,
+            jackpotWon: result.bonusWon,
+            currentPot: result.currentPot
           }));
 
           // If a jackpot or major hit was struck, broadcast alert to all bots
@@ -206,6 +245,13 @@ wss.on('connection', (ws) => {
               winner: authenticatedPlayerId,
               amount: result.bonusWon,
               newPot: result.currentPot
+            });
+
+            // Legacy alert
+            broadcast({
+              type: 'JACKPOT_ALERT',
+              winner: authenticatedPlayerId,
+              jackpotAmount: result.bonusWon
             });
           }
 
