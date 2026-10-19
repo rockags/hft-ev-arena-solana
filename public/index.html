@@ -6,6 +6,7 @@
   <title>⚡ Solana Quant Arena v2 — High-Frequency +EV Protocol</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 </head>
 <body>
   <!-- Header Bar -->
@@ -38,6 +39,7 @@
     </div>
 
     <div class="wallet-controls">
+      <button class="btn btn-emerald" id="btn-open-deposit">💰 Depositar SOL</button>
       <button class="btn btn-secondary" id="btn-faucet">💧 Faucet Demo (+$25)</button>
       <button class="btn btn-primary" id="btn-connect-wallet">👻 Conectar Phantom</button>
     </div>
@@ -52,7 +54,7 @@
       <div class="audit-card real-card">
         <div class="audit-header">
           <span class="badge-pill green">🟢 AUDITORÍA ON-CHAIN (SOLANA MAINNET REAL)</span>
-          <a href="https://solscan.io/account/E8LEvKRLRj1fYzVig4jE34FX9WPBgMw3oMD7JokziajD" target="_blank" class="audit-link">Ver en Solscan ↗</a>
+          <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" class="audit-link">Ver en Solscan ↗</a>
         </div>
         <div class="audit-stats-grid">
           <div class="audit-stat">
@@ -242,13 +244,76 @@
         <span class="text-muted" id="server-seed-hash">Hash: Cargando...</span>
       </div>
       <div class="proof-links">
-        <a href="https://solscan.io/account/E8LEvKRLRj1fYzVig4jE34FX9WPBgMw3oMD7JokziajD" target="_blank">🔍 Ver Bóveda Smart Contract en Solscan</a>
+        <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" id="footer-solscan-link">🔍 Ver Bóveda en Solscan</a>
         <span>•</span>
         <a href="https://github.com/rockags/hft-ev-arena-solana" target="_blank">Repositorio en GitHub</a>
         <span>•</span>
         <a href="/api/stats" target="_blank">API Telemetría JSON</a>
       </div>
     </footer>
+
+    <!-- DEPOSIT MODAL -->
+    <div class="modal-overlay" id="modal-deposit">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeDepositModal()">&times;</button>
+        <h3 style="margin-bottom: 0.5rem; color: #10b981;">💰 Depositar SOL Real (Solana Mainnet)</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+          Transfiere SOL desde tu wallet favorita (Phantom, Solflare, Bitso, Binance, Coinbase). Tu depósito se acreditará automáticamente en menos de 5 segundos.
+        </p>
+
+        <div style="margin-top: 1rem;">
+          <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">DIRECCIÓN DE LA BÓVEDA (MAINNET):</label>
+          <div class="deposit-address-box">
+            <input type="text" readonly id="vault-deposit-input" value="GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3">
+            <button class="btn btn-sm btn-secondary" id="btn-copy-vault-address">📋 Copiar</button>
+          </div>
+        </div>
+
+        <div id="phantom-quick-deposit" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+          <label style="font-size: 0.75rem; color: var(--cyan); font-weight: 700;">⚡ DEPÓSITO DIRECTO CON PHANTOM (1 CLIC):</label>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+            <button class="btn btn-sm btn-outline" onclick="quickDepositPhantom(0.05)">+0.05 SOL</button>
+            <button class="btn btn-sm btn-outline" onclick="quickDepositPhantom(0.10)">+0.10 SOL</button>
+            <button class="btn btn-sm btn-outline" onclick="quickDepositPhantom(0.25)">+0.25 SOL</button>
+            <button class="btn btn-sm btn-outline" onclick="quickDepositPhantom(0.50)">+0.50 SOL</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem; font-size: 0.75rem; display: flex; justify-content: space-between;">
+          <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" style="color: #38bdf8;">Ver en Solscan ↗</a>
+          <span style="color: #10b981;">🛡️ Detección en tiempo real activa</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WITHDRAWAL MODAL -->
+    <div class="modal-overlay" id="modal-withdraw">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeWithdrawModal()">&times;</button>
+        <h3 style="margin-bottom: 0.5rem; color: #fbbf24;">🚀 Retirar SOL Real On-Chain</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+          Envía tus fondos ganados directamente a tu wallet en Solana Mainnet sin fricción.
+        </p>
+
+        <div style="margin: 1rem 0;">
+          <div style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+            Saldo Real Disponible: <strong class="text-green" id="withdraw-available-usd">$0.00 USD</strong>
+          </div>
+          <div class="input-group" style="margin-bottom: 0.75rem;">
+            <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">DIRECCIÓN DE DESTINO EN SOLANA:</label>
+            <input type="text" id="withdraw-dest-input" placeholder="Tu wallet de Solana (ej. Phantom o Bitso)" style="width: 100%; padding: 0.6rem; border-radius: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); color: #fff; font-family: var(--font-mono); font-size: 0.8rem;">
+          </div>
+          <div class="input-group">
+            <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">MONTO A RETIRAR (USD):</label>
+            <input type="number" id="withdraw-amt-input" min="0.10" step="0.10" placeholder="Ej. 5.00" style="width: 100%; padding: 0.6rem; border-radius: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); color: #fff; font-family: var(--font-mono); font-size: 0.8rem;">
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-gold" style="width: 100%;" id="btn-submit-withdraw">Confirmar y Enviar Retiro On-Chain</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script src="app.js"></script>

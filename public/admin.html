@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🛡️ Centro de Control del Operador | Protocolo Gacha Solana</title>
+  <script src="/solana-web3.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #070a12;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      padding: 24px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: #38bdf8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-title h1 {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f59e0b, #ec4899, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-title p {
+      color: #94a3b8;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+    .btn-warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #000;
+      font-weight: 700;
+    }
+    .btn-warning:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.15);
+      color: #cbd5e1;
+    }
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.3);
+      color: #fff;
+    }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    /* Auth Gate Overlay */
+    #auth-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(7, 10, 18, 0.96);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    .auth-card {
+      background: #0f172a;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      box-shadow: 0 0 50px rgba(245, 158, 11, 0.15);
+      border-radius: 16px;
+      padding: 36px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+    }
+    .auth-card h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      color: #f8fafc;
+    }
+    .auth-card p {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .auth-card input {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 8px;
+      background: #090d16;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #38bdf8;
+      font-size: 13px;
+      font-family: 'SF Mono', Consolas, monospace;
+      margin-bottom: 18px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .auth-card input:focus {
+      outline: none;
+      border-color: #f59e0b;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+    }
+    .auth-error {
+      color: #f87171;
+      font-size: 12px;
+      margin-top: -10px;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    /* Main Dashboard Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: #0f172a;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,0.15);
+    }
+    .kpi-card.highlight {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(6, 78, 59, 0.2));
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.1);
+    }
+    .kpi-card.turbo {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(180, 83, 9, 0.15));
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    .kpi-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #f8fafc;
+      font-family: 'SF Mono', Consolas, monospace;
+    }
+    .kpi-card.highlight .kpi-value {
+      color: #34d399;
+      text-shadow: 0 0 20px rgba(52, 211, 153, 0.4);
+    }
+    .kpi-subtext {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 6px;
+    }
+
+    /* Actions Section Grid */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 600px) {
+      .actions-grid { grid-template-columns: 1fr; }
+    }
+    .action-panel {
+      background: #0f172a;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 12px;
+    }
+    .panel-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #f1f5f9;
+    }
+    .panel-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .panel-badge.green { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .panel-badge.yellow { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    /* Form Inputs */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .form-input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: #090d16;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 13px;
+      font-family: 'SF Mono', Consolas, monospace;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+    .btn-sub {
+      padding: 10px 14px;
+      font-size: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #1e293b;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #e2e8f0;
+      white-space: nowrap;
+    }
+    .btn-sub:hover { background: #334155; }
+
+    /* Turbo Switch Banner */
+    .turbo-box {
+      background: rgba(245, 158, 11, 0.05);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .turbo-info h3 {
+      font-size: 14px;
+      color: #fbbf24;
+      margin-bottom: 4px;
+    }
+    .turbo-info p {
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    /* Status Console & Tables */
+    .logs-panel {
+      background: #0f172a;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .logs-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .logs-header h3 {
+      font-size: 15px;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .console-feed {
+      background: #090d16;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 12px;
+      height: 180px;
+      overflow-y: auto;
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .log-entry {
+      display: flex;
+      gap: 10px;
+      line-height: 1.4;
+    }
+    .log-time { color: #64748b; }
+    .log-tag { font-weight: 700; }
+    .log-tag.sweep { color: #34d399; }
+    .log-tag.jackpot { color: #fbbf24; }
+    .log-tag.deposit { color: #38bdf8; }
+    .log-tag.info { color: #94a3b8; }
+    .log-msg { color: #e2e8f0; }
+
+    /* Tables */
+    .table-responsive {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    th {
+      background: rgba(255,255,255,0.02);
+      color: #94a3b8;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: #cbd5e1;
+    }
+    tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    /* Modal / Alert Banners */
+    .alert-banner {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    .alert-banner.success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+    .alert-banner.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- AUTHENTICATION GATE MODAL -->
+  <div id="auth-overlay">
+    <div class="auth-card">
+      <div style="font-size: 40px; margin-bottom: 12px;">🔐</div>
+      <h2>Panel del Operador</h2>
+      <p>Ingrese su Clave Maestra Criptográfica SHA-256 para gestionar la bóveda y retirar comisiones acumuladas.</p>
+      <input type="password" id="admin-pin-input" placeholder="Pegue su Clave SHA-256 (64 hex)" autofocus />
+      <div id="auth-error-msg" class="auth-error">Clave criptográfica incorrecta o no autorizada.</div>
+      <button class="btn btn-warning" style="width: 100%; justify-content: center;" onclick="attemptLogin()">
+        Desbloquear Panel
+      </button>
+      <div style="margin-top: 18px; font-size: 11px; color: #64748b;">
+        🔒 Acceso protegido por autenticación SHA-256 de 256 bits
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN ADMIN DASHBOARD -->
+  <header class="header">
+    <div class="header-title">
+      <h1>
+        <span>🛡️ Centro de Control del Operador</span>
+        <span class="panel-badge green" id="header-conn-status">
+          <span class="pulse-dot"></span> CONECTADO
+        </span>
+      </h1>
+      <p>Gestión de Comisiones Líquidas, Bóveda Solana On-Chain & Parámetros del Protocolo</p>
+    </div>
+    <div class="header-actions">
+      <a href="/" class="btn btn-outline">
+        🌐 Dashboard Público
+      </a>
+      <button class="btn btn-danger" onclick="logoutAdmin()">
+        🔒 Bloquear / Salir
+      </button>
+    </div>
+  </header>
+
+  <!-- ALERT NOTIFICATION BANNER -->
+  <div id="alert-banner" class="alert-banner"></div>
+
+  <!-- PRIMARY METRICS CARDS -->
+  <section class="kpi-grid">
+    <!-- Liquid House Revenue -->
+    <div class="kpi-card highlight">
+      <div class="kpi-label">
+        <span>Comisiones Líquidas (Ganancias)</span>
+        <span style="font-size: 16px;">💰</span>
+      </div>
+      <div class="kpi-value" id="kpi-revenue">$0.00 USD</div>
+      <div class="kpi-subtext" id="kpi-revenue-sub">Disponible para barrer a su wallet de Solana</div>
+    </div>
+
+    <!-- Progressive Pot -->
+    <div class="kpi-card">
+      <div class="kpi-label">
+        <span>Bote Progresivo Acumulado</span>
+        <span style="font-size: 16px;">🏆</span>
+      </div>
+      <div class="kpi-value" id="kpi-pot" style="color: #fbbf24;">$0.00 USD</div>
+      <div class="kpi-subtext" id="kpi-pot-ev">Cálculo EV: Calculando...</div>
+    </div>
+
+    <!-- Solana Vault Balance -->
+    <div class="kpi-card">
+      <div class="kpi-label">
+        <span>Bóveda Solana (On-Chain)</span>
+        <span style="font-size: 16px;">⚡</span>
+      </div>
+      <div class="kpi-value" id="kpi-vault-sol" style="color: #c084fc;">0.0000 SOL</div>
+      <div class="kpi-subtext" id="kpi-vault-usd">≈ $0.00 USD (Devnet)</div>
+    </div>
+
+    <!-- Active Swarm Traffic -->
+    <div class="kpi-card">
+      <div class="kpi-label">
+        <span>Swarm de Bots Conectados</span>
+        <span style="font-size: 16px;">🤖</span>
+      </div>
+      <div class="kpi-value" id="kpi-bots">0</div>
+      <div class="kpi-subtext" id="kpi-tps">0.0 tiradas / segundo</div>
+    </div>
+
+    <!-- Total Processed Volume -->
+    <div class="kpi-card">
+      <div class="kpi-label">
+        <span>Volumen Total Procesado</span>
+        <span style="font-size: 16px;">📊</span>
+      </div>
+      <div class="kpi-value" id="kpi-volume">$0.00 USD</div>
+      <div class="kpi-subtext" id="kpi-rolls">0 tiradas totales</div>
+    </div>
+  </section>
+
+  <!-- ACTIONS SECTION -->
+  <section class="actions-grid">
+    <!-- SWEEP REVENUE PANEL -->
+    <div class="action-panel">
+      <div class="panel-header">
+        <h2><span>🚀 Barrer Comisiones a Mi Wallet</span></h2>
+        <span class="panel-badge green">Transferencia Inmediata</span>
+      </div>
+      <p style="font-size: 13px; color: #94a3b8; line-height: 1.5;">
+        Envía las comisiones acumuladas de la casa directamente desde la Bóveda del contrato a tu wallet personal de Solana (Phantom / Solflare).
+      </p>
+
+      <div class="form-group">
+        <label>Dirección Solana Destino</label>
+        <div class="input-row">
+          <input type="text" id="sweep-dest-wallet" class="form-input" placeholder="Dirección Solana en Base58 (Bitso predeterminado)" value="HC6oPv9UFzTyek2e9ibUgXJLhciZRQpmk2AAhgnFHVdY" />
+          <button class="btn-sub" onclick="document.getElementById('sweep-dest-wallet').value = 'HC6oPv9UFzTyek2e9ibUgXJLhciZRQpmk2AAhgnFHVdY'">🏦 Mi Bitso</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Monto a Retirar ($ USD)</label>
+        <div class="input-row">
+          <input type="number" id="sweep-amount" class="form-input" step="0.01" min="0.01" placeholder="Ej: 5.00 (dejar en blanco para todo)" />
+          <button class="btn-sub" onclick="setSweepAll()">Max Todo</button>
+        </div>
+      </div>
+
+      <button id="btn-sweep" class="btn btn-primary" style="justify-content: center; padding: 12px;" onclick="executeSweep()">
+        ⚡ Ejecutar Barrido On-Chain a Mi Wallet
+      </button>
+
+      <div id="sweep-result" style="display: none; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; font-size: 12px; line-height: 1.5;">
+      </div>
+    </div>
+
+    <!-- TURBO FLYWHEEL CONTROL PANEL -->
+    <div class="action-panel">
+      <div class="panel-header">
+        <h2><span>⚡ Modo Turbo Flywheel</span></h2>
+        <span class="panel-badge yellow" id="badge-turbo-mode">Activo</span>
+      </div>
+
+      <div class="turbo-box">
+        <div class="turbo-info">
+          <h3 id="turbo-status-title">🚀 Modo Turbo: ACTIVO (100% al Bote)</h3>
+          <p id="turbo-status-desc">
+            En fase de arranque, el 100% de la retención ($0.02 / $0.002) se inyecta directamente al Bote para inflarlo a 2x velocidad ($20+ USD) sin fondeo de bolsillo propio.
+          </p>
+        </div>
+        <button id="btn-toggle-turbo" class="btn btn-warning" onclick="toggleTurboMode()">
+          Cambiar a Normal
+        </button>
+      </div>
+
+      <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px;">
+        <h3 style="font-size: 13px; color: #f1f5f9; margin-bottom: 8px;">💧 Fondeo de Pruebas (Devnet Faucet)</h3>
+        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">
+          Si la bóveda se queda sin saldo durante las pruebas, recargue 1 SOL desde el grifo oficial.
+        </p>
+        <button class="btn btn-outline" id="btn-faucet" onclick="requestFaucet()">
+          💧 Solicitar 1 SOL Airdrop a la Bóveda
+        </button>
+      </div>
+
+      <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px;">
+        <h3 style="font-size: 13px; color: #f1f5f9; margin-bottom: 8px;">🎲 Provably Fair Seed</h3>
+        <p style="font-size: 11px; color: #64748b; word-break: break-all; margin-bottom: 8px;" id="seed-hash-display">
+          Hash: cargando...
+        </p>
+        <button class="btn btn-outline" style="font-size: 12px;" onclick="rotateServerSeed()">
+          🔄 Rotar y Revelar Semilla del Servidor
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE TELEMETRY CONSOLE & RECENT WINNERS -->
+  <section class="logs-panel">
+    <div class="logs-header">
+      <h3><span>📡 Consola de Actividad en Vivo (Transacciones & Swarm)</span></h3>
+      <span style="font-size: 12px; color: #64748b;" id="vault-address-footer">Bóveda: ...</span>
+    </div>
+    <div class="console-feed" id="console-feed">
+      <div class="log-entry">
+        <span class="log-time">[Iniciando]</span>
+        <span class="log-tag info">[SISTEMA]</span>
+        <span class="log-msg">Panel de administración cargado. Esperando eventos del servidor...</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECENT JACKPOTS & TOP PLAYERS -->
+  <section class="actions-grid">
+    <div class="action-panel">
+      <div class="panel-header">
+        <h2><span>🏆 Últimos Jackpots Entregados</span></h2>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ganador</th>
+              <th>Nivel</th>
+              <th>Monto Pagado</th>
+              <th>Roll #</th>
+            </tr>
+          </thead>
+          <tbody id="jackpots-table-body">
+            <tr><td colspan="5" style="text-align: center; color: #64748b;">No hay jackpots registrados aún</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="action-panel">
+      <div class="panel-header">
+        <h2><span>🤖 Bots Activos en el Swarm</span></h2>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Bot ID</th>
+              <th>Tiradas</th>
+              <th>Saldo USD</th>
+              <th>Total Ganado</th>
+            </tr>
+          </thead>
+          <tbody id="bots-table-body">
+            <tr><td colspan="4" style="text-align: center; color: #64748b;">Conectando con el Swarm...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // State
+    let adminKey = sessionStorage.getItem('gacha_admin_key') || '';
+    let ws = null;
+    let overviewData = null;
+
+    // Elements
+    const authOverlay = document.getElementById('auth-overlay');
+    const pinInput = document.getElementById('admin-pin-input');
+    const authErrorMsg = document.getElementById('auth-error-msg');
+    const alertBanner = document.getElementById('alert-banner');
+    const consoleFeed = document.getElementById('console-feed');
+
+    // On Load
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (adminKey) {
+        const ok = await verifyKey(adminKey);
+        if (ok) {
+          authOverlay.style.display = 'none';
+          initAdmin();
+        } else {
+          sessionStorage.removeItem('gacha_admin_key');
+          adminKey = '';
+          authOverlay.style.display = 'flex';
+        }
+      } else {
+        authOverlay.style.display = 'flex';
+      }
+
+      pinInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') attemptLogin();
+      });
+    });
+
+    async function verifyKey(key) {
+      try {
+        const res = await fetch('/api/admin/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-key': key },
+          body: JSON.stringify({ adminKey: key })
+        });
+        const data = await res.json();
+        return data.success === true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function attemptLogin() {
+      const key = pinInput.value.trim();
+      if (!key) return;
+      authErrorMsg.style.display = 'none';
+
+      const ok = await verifyKey(key);
+      if (ok) {
+        adminKey = key;
+        sessionStorage.setItem('gacha_admin_key', key);
+        authOverlay.style.display = 'none';
+        initAdmin();
+      } else {
+        authErrorMsg.style.display = 'block';
+      }
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('gacha_admin_key');
+      adminKey = '';
+      location.reload();
+    }
+
+    function initAdmin() {
+      fetchOverview();
+      connectWebSocket();
+      setInterval(fetchOverview, 3000);
+    }
+
+    function showAlert(msg, isSuccess = true) {
+      alertBanner.textContent = msg;
+      alertBanner.className = 'alert-banner ' + (isSuccess ? 'success' : 'error');
+      alertBanner.style.display = 'flex';
+      setTimeout(() => { alertBanner.style.display = 'none'; }, 6000);
+    }
+
+    function addConsoleLog(tag, msg, tagClass = 'info') {
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = 'log-entry';
+      div.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-tag ${tagClass}">[${tag}]</span> <span class="log-msg">${msg}</span>`;
+      consoleFeed.prepend(div);
+      if (consoleFeed.children.length > 50) consoleFeed.lastChild.remove();
+    }
+
+    async function fetchOverview() {
+      if (!adminKey) return;
+      try {
+        const res = await fetch('/api/admin/overview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+          body: JSON.stringify({ adminKey })
+        });
+        if (res.status === 401) {
+          logoutAdmin();
+          return;
+        }
+        const data = await res.json();
+        if (data.success) {
+          overviewData = data;
+          renderOverview(data);
+        }
+      } catch (err) {
+        console.error("Overview error:", err);
+      }
+    }
+
+    function renderOverview(d) {
+      document.getElementById('kpi-revenue').textContent = `$${d.houseRevenue.toFixed(2)} USD`;
+      document.getElementById('kpi-pot').textContent = `$${d.pot.toFixed(2)} USD`;
+
+      const evRatio = (d.pot / 20.0).toFixed(2);
+      const isPositiveEv = d.pot >= 20.0;
+      document.getElementById('kpi-pot-ev').textContent = isPositiveEv 
+        ? `🔥 +EV ACTIVO (${evRatio}x retorno sobre el costo de fricción)`
+        : `Faltan $${(20.0 - d.pot).toFixed(2)} para umbral +EV`;
+
+      if (d.vault) {
+        document.getElementById('kpi-vault-sol').textContent = `${d.vault.sol.toFixed(4)} SOL`;
+        document.getElementById('kpi-vault-usd').textContent = `≈ $${d.vault.usdEquivalent.toFixed(2)} USD`;
+        document.getElementById('vault-address-footer').innerHTML = `Bóveda: <a href="https://explorer.solana.com/address/${d.vault.address}?cluster=devnet" target="_blank" style="color: #c084fc;">${d.vault.address.substring(0, 8)}...${d.vault.address.substring(d.vault.address.length - 8)}</a>`;
+      }
+
+      document.getElementById('kpi-bots').textContent = `${d.activeBots} bots`;
+      document.getElementById('kpi-tps').textContent = `${d.rollsPerSecond || 0} tiradas/segundo`;
+      document.getElementById('kpi-volume').textContent = `$${d.totalVolume.toFixed(2)} USD`;
+      document.getElementById('kpi-rolls').textContent = `${d.totalRolls.toLocaleString()} tiradas`;
+
+      // Turbo Flywheel Mode
+      const isTurbo = d.turboMode;
+      const turboBadge = document.getElementById('badge-turbo-mode');
+      const turboTitle = document.getElementById('turbo-status-title');
+      const turboDesc = document.getElementById('turbo-status-desc');
+      const turboBtn = document.getElementById('btn-toggle-turbo');
+
+      if (isTurbo) {
+        turboBadge.textContent = 'ACTIVO';
+        turboBadge.className = 'panel-badge yellow';
+        turboTitle.textContent = '🚀 Modo Turbo: ACTIVO (100% al Bote)';
+        turboDesc.textContent = 'Todo el $0.02 / $0.002 de fricción se inyecta directamente al Bote para inflarlo a 2x velocidad ($20+ USD) sin fondear de tu propio bolsillo.';
+        turboBtn.textContent = 'Cambiar a Modo Normal (50/50)';
+      } else {
+        turboBadge.textContent = 'MODO NORMAL (50/50)';
+        turboBadge.className = 'panel-badge green';
+        turboTitle.textContent = '💰 Modo Normal: 50% Bote / 50% Comisiones Casa';
+        turboDesc.textContent = 'Generando comisiones líquidas para la Casa: $0.01 por sobre Oro y $0.001 por sobre Bronce.';
+        turboBtn.textContent = 'Activar Modo Turbo Flywheel';
+      }
+
+      // Seed hash
+      document.getElementById('seed-hash-display').textContent = `Hash Provably Fair: ${d.serverSeedHash}`;
+
+      // Jackpots table
+      if (d.recentJackpots && d.recentJackpots.length > 0) {
+        const tb = document.getElementById('jackpots-table-body');
+        tb.innerHTML = d.recentJackpots.map(j => `
+          <tr>
+            <td>#${j.id}</td>
+            <td style="font-family: monospace; color: #38bdf8;">${j.winner}</td>
+            <td><span class="panel-badge ${j.tier === 'GOLD' ? 'yellow' : 'green'}">${j.tier}</span></td>
+            <td style="color: #34d399; font-weight: 700;">$${j.amount.toFixed(2)} USD</td>
+            <td>Roll #${j.roll}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Top Bots table
+      if (d.topPlayers && d.topPlayers.length > 0) {
+        const tb = document.getElementById('bots-table-body');
+        tb.innerHTML = d.topPlayers.map(p => `
+          <tr>
+            <td style="font-family: monospace; color: #f1f5f9;">${p.id}</td>
+            <td>${p.rolls.toLocaleString()}</td>
+            <td style="color: #fbbf24;">$${p.balance.toFixed(2)}</td>
+            <td style="color: #34d399;">$${p.totalWon.toFixed(2)}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    // Connect Live WebSocket
+    function connectWebSocket() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${proto}//${location.host}/ws`;
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        addConsoleLog('WS', 'Conectado al flujo en tiempo real de Cloud Run', 'info');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'COMMISSION_SWEPT') {
+            addConsoleLog('BARRIDO', `Se han barrido $${msg.sweptUSD.toFixed(2)} USD a ${msg.destinationWallet.substring(0,6)}... | Tx: ${msg.signature.substring(0,8)}...`, 'sweep');
+            fetchOverview();
+          } else if (msg.type === 'JACKPOT_ALERT') {
+            addConsoleLog('JACKPOT', `¡Bot ${msg.winner} ha ganado el Bote de $${msg.jackpotAmount.toFixed(2)} USDC!`, 'jackpot');
+            fetchOverview();
+          } else if (msg.type === 'ON_CHAIN_DEPOSIT_CONFIRMED') {
+            addConsoleLog('DEPÓSITO', `Depósito on-chain confirmado: +${msg.amountSol.toFixed(4)} SOL ($${msg.amountUsd.toFixed(2)} USD) de ${msg.sender.substring(0,6)}...`, 'deposit');
+            fetchOverview();
+          } else if (msg.type === 'TURBO_MODE_CHANGED') {
+            addConsoleLog('TURBO', `Modo Turbo cambiado a: ${msg.turboMode ? 'ACTIVADO' : 'DESACTIVADO'}`, 'info');
+            fetchOverview();
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        setTimeout(connectWebSocket, 3000);
+      };
+    }
+
+    // Auto-detect Phantom wallet
+    async function autoDetectWallet() {
+      try {
+        let provider = null;
+        if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) {
+          provider = window.phantom.solana;
+        } else if (window.solana && window.solana.isPhantom) {
+          provider = window.solana;
+        }
+
+        if (provider) {
+          const resp = await provider.connect();
+          const pubkey = resp.publicKey.toString();
+          document.getElementById('sweep-dest-wallet').value = pubkey;
+          showAlert(`Wallet Phantom detectada: ${pubkey.substring(0,8)}...`, true);
+        } else {
+          showAlert('No se detectó Phantom Wallet en este navegador. Pegue su dirección manualmente.', false);
+        }
+      } catch (err) {
+        showAlert('Error al conectar Phantom: ' + err.message, false);
+      }
+    }
+
+    function setSweepAll() {
+      if (overviewData && overviewData.houseRevenue > 0) {
+        document.getElementById('sweep-amount').value = overviewData.houseRevenue.toFixed(2);
+      } else {
+        showAlert('No hay comisiones líquidas acumuladas aún para retirar.', false);
+      }
+    }
+
+    // Execute Sweep
+    async function executeSweep() {
+      const dest = document.getElementById('sweep-dest-wallet').value.trim();
+      const amtInput = document.getElementById('sweep-amount').value.trim();
+      const btn = document.getElementById('btn-sweep');
+      const resBox = document.getElementById('sweep-result');
+
+      if (!dest) {
+        showAlert('Por favor ingrese o detecte su dirección de Solana destino', false);
+        return;
+      }
+
+      if (!overviewData || overviewData.houseRevenue <= 0) {
+        showAlert('No hay comisiones líquidas para barrer en este momento.', false);
+        return;
+      }
+
+      const amountUSD = amtInput ? Number(amtInput) : overviewData.houseRevenue;
+      if (isNaN(amountUSD) || amountUSD <= 0) {
+        showAlert('Monto a retirar inválido', false);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Transfiriendo en Solana Devnet...';
+      resBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/admin/sweep', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+          body: JSON.stringify({
+            adminKey,
+            destinationWallet: dest,
+            amountUSD
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showAlert(`¡Barrido Exitoso! $${data.sweptUSD.toFixed(2)} USD transferidos a su wallet.`, true);
+          resBox.style.display = 'block';
+          resBox.innerHTML = `
+            <div style="color: #34d399; font-weight: 700; margin-bottom: 6px;">✅ Transacción Solana Confirmada:</div>
+            <div>Monto: <b>$${data.sweptUSD.toFixed(2)} USD</b> (${data.solSent ? data.solSent.toFixed(4) : ''} SOL)</div>
+            <div>Firma Tx: <code style="color: #38bdf8;">${data.signature}</code></div>
+            <div style="margin-top: 6px;">
+              <a href="${data.explorerUrl}" target="_blank" style="color: #fbbf24; font-weight: 700;">
+                🔗 Ver en Solana Explorer ↗
+              </a>
+            </div>
+          `;
+          document.getElementById('sweep-amount').value = '';
+          fetchOverview();
+        } else {
+          showAlert(`Error en el barrido: ${data.error}`, false);
+        }
+      } catch (err) {
+        showAlert('Error de comunicación: ' + err.message, false);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '⚡ Ejecutar Barrido On-Chain a Mi Wallet';
+      }
+    }
+
+    // Toggle Turbo Mode
+    async function toggleTurboMode() {
+      const btn = document.getElementById('btn-toggle-turbo');
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/admin/turbo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+          body: JSON.stringify({ adminKey })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showAlert(`Modo Turbo Flywheel ${data.turboMode ? 'ACTIVADO' : 'DESACTIVADO'}.`, true);
+          fetchOverview();
+        }
+      } catch (err) {
+        showAlert('Error al cambiar modo turbo: ' + err.message, false);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Faucet request
+    async function requestFaucet() {
+      const btn = document.getElementById('btn-faucet');
+      btn.disabled = true;
+      btn.textContent = '💧 Solicitando Airdrop (1 SOL)...';
+      try {
+        const res = await fetch('/api/vault/airdrop', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showAlert('¡Airdrop de 1 SOL recibido en la Bóveda!', true);
+          fetchOverview();
+        } else {
+          showAlert('Error en grifo: ' + data.error, false);
+        }
+      } catch (e) {
+        showAlert('Error al solicitar airdrop: ' + e.message, false);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💧 Solicitar 1 SOL Airdrop a la Bóveda';
+      }
+    }
+
+    // Rotate seed
+    async function rotateServerSeed() {
+      if (!confirm('¿Desea rotar la semilla del servidor? La semilla anterior será revelada públicamente para auditoría criptográfica.')) return;
+      try {
+        const res = await fetch('/api/admin/rotate-seed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+          body: JSON.stringify({ adminKey })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showAlert(`Semilla rotada. Semilla anterior revelada: ${data.revealedServerSeed.substring(0, 16)}...`, true);
+          fetchOverview();
+        }
+      } catch (e) {
+        showAlert('Error al rotar semilla: ' + e.message, false);
+      }
+    }
+  </script>
+</body>
+</html>

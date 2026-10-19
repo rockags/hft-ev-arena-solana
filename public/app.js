@@ -242,14 +242,154 @@ btnConnectWallet.addEventListener('click', async () => {
   }
 });
 
-// Withdrawal
-document.getElementById('btn-withdraw').addEventListener('click', () => {
-  if (balanceReal <= 0) {
-    alert(`Tu balance Real On-Chain es $0.00 USD. Los retiros aplican solo a balance fondeado con SOL real.`);
+// Active Vault Address
+let activeVaultAddress = 'GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3';
+
+// Deposit Modal Handlers
+const modalDeposit = document.getElementById('modal-deposit');
+const btnOpenDeposit = document.getElementById('btn-open-deposit');
+const btnCopyVaultAddress = document.getElementById('btn-copy-vault-address');
+const vaultDepositInput = document.getElementById('vault-deposit-input');
+
+if (btnOpenDeposit) {
+  btnOpenDeposit.addEventListener('click', () => {
+    modalDeposit.classList.add('active');
+  });
+}
+
+window.closeDepositModal = function() {
+  modalDeposit.classList.remove('active');
+};
+
+if (btnCopyVaultAddress) {
+  btnCopyVaultAddress.addEventListener('click', () => {
+    navigator.clipboard.writeText(vaultDepositInput.value);
+    btnCopyVaultAddress.textContent = '✅ ¡Copiado!';
+    setTimeout(() => { btnCopyVaultAddress.textContent = '📋 Copiar'; }, 2000);
+  });
+}
+
+// 1-Click Phantom Deposit
+window.quickDepositPhantom = async function(solAmount) {
+  if (!window.phantom || !window.phantom.solana || !window.phantom.solana.isPhantom) {
+    alert("Por favor instala o desbloquea Phantom Wallet.");
     return;
   }
-  alert(`Retiro On-Chain: Transfiere tus $${balanceReal.toFixed(2)} USD en SOL de vuelta a tu wallet Phantom.`);
-});
+  if (!phantomAddress) {
+    try {
+      const resp = await window.phantom.solana.connect();
+      phantomAddress = resp.publicKey.toString();
+      currentUserId = phantomAddress;
+      localStorage.setItem('quant_user_id', currentUserId);
+      userIdDisplay.textContent = `${phantomAddress.substring(0, 6)}...${phantomAddress.substring(phantomAddress.length - 4)}`;
+    } catch (e) {
+      alert("Error al conectar Phantom: " + e.message);
+      return;
+    }
+  }
+
+  if (typeof solanaWeb3 === 'undefined') {
+    alert("Cargando SDK de Solana... Intenta en 2 segundos.");
+    return;
+  }
+
+  try {
+    addLog(`Iniciando depósito de ${solAmount} SOL con Phantom...`, "info");
+    const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com", "confirmed");
+    const lamports = Math.floor(solAmount * 1e9);
+
+    const transaction = new solanaWeb3.Transaction().add(
+      solanaWeb3.SystemProgram.transfer({
+        fromPubkey: new solanaWeb3.PublicKey(phantomAddress),
+        toPubkey: new solanaWeb3.PublicKey(activeVaultAddress),
+        lamports
+      })
+    );
+
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = new solanaWeb3.PublicKey(phantomAddress);
+
+    const { signature } = await window.phantom.solana.signAndSendTransaction(transaction);
+    addLog(`🚀 Transacción enviada: ${signature.substring(0, 10)}... Esperando acreditación...`, "hit");
+    closeDepositModal();
+  } catch (err) {
+    alert("Error en transacción: " + err.message);
+  }
+};
+
+// Withdrawal Modal Handlers
+const modalWithdraw = document.getElementById('modal-withdraw');
+const btnWithdraw = document.getElementById('btn-withdraw');
+const withdrawDestInput = document.getElementById('withdraw-dest-input');
+const withdrawAmtInput = document.getElementById('withdraw-amt-input');
+const withdrawAvailableUsd = document.getElementById('withdraw-available-usd');
+const btnSubmitWithdraw = document.getElementById('btn-submit-withdraw');
+
+if (btnWithdraw) {
+  btnWithdraw.addEventListener('click', () => {
+    if (balanceReal <= 0.05) {
+      alert(`Tu balance Real On-Chain es $${balanceReal.toFixed(2)} USD. Fondea SOL para operar o retira cuando acumules saldo.`);
+      return;
+    }
+    withdrawAvailableUsd.textContent = `$${balanceReal.toFixed(2)} USD`;
+    if (phantomAddress && !withdrawDestInput.value) {
+      withdrawDestInput.value = phantomAddress;
+    }
+    withdrawAmtInput.value = balanceReal.toFixed(2);
+    modalWithdraw.classList.add('active');
+  });
+}
+
+window.closeWithdrawModal = function() {
+  modalWithdraw.classList.remove('active');
+};
+
+if (btnSubmitWithdraw) {
+  btnSubmitWithdraw.addEventListener('click', async () => {
+    const dest = withdrawDestInput.value.trim();
+    const amt = parseFloat(withdrawAmtInput.value);
+
+    if (!dest || dest.length < 32) {
+      alert("Por favor ingresa una dirección de Solana válida (32-44 caracteres).");
+      return;
+    }
+    if (isNaN(amt) || amt <= 0 || amt > balanceReal) {
+      alert(`Monto inválido. Ingresa un valor entre $0.10 y $${balanceReal.toFixed(2)} USD.`);
+      return;
+    }
+
+    btnSubmitWithdraw.disabled = true;
+    btnSubmitWithdraw.textContent = "Procesando retiro On-Chain...";
+
+    try {
+      const res = await fetch('/api/withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playerId: currentUserId,
+          destinationAddress: dest,
+          amountUSD: amt
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        balanceReal = Math.max(0, balanceReal - amt);
+        updateUserUI();
+        addLog(`✅ Retiro On-Chain confirmado: $${amt.toFixed(2)} USD enviados a ${dest.substring(0, 6)}... | <a href="${data.explorerUrl}" target="_blank" style="color:#38bdf8;">Ver en Solscan ↗</a>`, "hit");
+        alert(`¡Retiro exitoso! Transacción enviada a la red de Solana.`);
+        closeWithdrawModal();
+      } else {
+        alert("Error en retiro: " + (data.error || "No se pudo procesar"));
+      }
+    } catch (e) {
+      alert("Error de conexión: " + e.message);
+    } finally {
+      btnSubmitWithdraw.disabled = false;
+      btnSubmitWithdraw.textContent = "Confirmar y Enviar Retiro On-Chain";
+    }
+  });
+}
 
 // Leaderboard Tabs
 window.switchLeaderboardTab = function(tab) {
@@ -299,7 +439,9 @@ async function fetchProtocolStats() {
       if (data.vaultInfo && data.vaultInfo.sol !== undefined) {
         document.getElementById('vault-real-sol').textContent = `${data.vaultInfo.sol.toFixed(5)} SOL (~$${data.vaultInfo.usdEquivalent.toFixed(2)} USD)`;
         if (data.vaultInfo.address) {
-          const auditLinks = document.querySelectorAll('.audit-link, .proof-links a[href*="solscan"]');
+          activeVaultAddress = data.vaultInfo.address;
+          if (vaultDepositInput) vaultDepositInput.value = data.vaultInfo.address;
+          const auditLinks = document.querySelectorAll('.audit-link, .proof-links a[href*="solscan"], #deposit-solscan-link, #footer-solscan-link');
           auditLinks.forEach(link => {
             link.href = `https://solscan.io/account/${data.vaultInfo.address}`;
           });

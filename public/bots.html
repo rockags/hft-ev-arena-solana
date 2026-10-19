@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🤖 Developer & Bot API | Solana High-Frequency Quantitative Protocol</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #090d16;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      padding: 24px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .title h1 {
+      font-size: 26px;
+      background: linear-gradient(135deg, #14f195, #9945ff, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-back {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-back:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: #38bdf8;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(10px);
+    }
+    .card h2 {
+      font-size: 18px;
+      color: #fbbf24;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .kpi-box .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+    .kpi-box .val {
+      font-size: 20px;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-top: 4px;
+      word-break: break-all;
+    }
+    pre {
+      background: #030712;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      color: #34d399;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12.5px;
+      overflow-x: auto;
+      margin: 12px 0;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .copy-btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: #38bdf8;
+    }
+    input, button {
+      font-family: inherit;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .input-group label {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .input-group input {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 13px;
+    }
+    .verify-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .verify-result {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">
+        <h1>🤖 API de Desarrolladores & Bots de Alta Frecuencia</h1>
+      </div>
+      <a href="/" class="btn-back">← Volver al Terminal Principal</a>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="card">
+      <h2>⚡ Arquitectura del Protocolo</h2>
+      <p style="color: #94a3b8; margin-bottom: 16px;">
+        Este protocolo está diseñado con arquitectura de microsegundo para soportar trading algorítmico, arbitraje de botes progresivos (+EV sniping) y bots de alta frecuencia en la red de <strong>Solana Mainnet</strong>.
+      </p>
+
+      <div class="kpi-row">
+        <div class="kpi-box">
+          <div class="label">RTP (Retorno Teórico)</div>
+          <div class="val" style="color: #4ade80;">99.8%</div>
+        </div>
+        <div class="kpi-box">
+          <div class="label">Fricción de la Casa</div>
+          <div class="val" style="color: #f59e0b;">0.2% ($0.002)</div>
+        </div>
+        <div class="kpi-box">
+          <div class="label">Frecuencia Micro-Hits</div>
+          <div class="val" style="color: #38bdf8;">1 en 25 (4.0%)</div>
+        </div>
+        <div class="kpi-box">
+          <div class="label">Latencia Medida (RTT)</div>
+          <div class="val" style="color: #10b981;">~5.7 ms</div>
+        </div>
+        <div class="kpi-box">
+          <div class="label">Mega Jackpot (Roll 777)</div>
+          <div class="val" style="color: #c084fc;">1 en 1,000 (0.1%)</div>
+        </div>
+        <div class="kpi-box">
+          <div class="label">Generador RNG</div>
+          <div class="val" style="color: #fbbf24;">HMAC-SHA256</div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>WebSocket Stream Endpoint (Acceso Público 24/7):</label>
+        <input type="text" readonly value="wss://gacha-protocol-628421927095.us-central1.run.app/ws">
+      </div>
+      <div class="input-group">
+        <label>Bóveda On-Chain de Solana (Depósitos Mainnet):</label>
+        <input type="text" readonly value="GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3">
+      </div>
+      <div style="margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="https://github.com/rockags/hft-ev-arena-solana" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: #238636; color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13px;">
+          ⭐ Repositorio Oficial en GitHub (hft-ev-arena-solana)
+        </a>
+        <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(153, 69, 255, 0.2); border: 1px solid #9945ff; color: #c084fc; padding: 10px 18px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13px;">
+          🔍 Explorador Solana Mainnet (Bóveda)
+        </a>
+      </div>
+    </div>
+
+    <!-- Multi-Tier Rewards Table -->
+    <div class="card">
+      <h2>🎯 Sistema de Recompensas Multi-Tier (Continuous EV Spikes)</h2>
+      <p style="color: #94a3b8; font-size: 13px; margin-bottom: 16px;">
+        Para evitar estancamiento o pérdida plana, el motor distribuye botes micro y mayores de forma continua, generando picos de ganancia verde para estrategias cuantitativas:
+      </p>
+
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #cbd5e1;">
+              <th style="padding: 10px;">Tipo de Golpe</th>
+              <th style="padding: 10px;">Probabilidad</th>
+              <th style="padding: 10px;">Condición HMAC</th>
+              <th style="padding: 10px;">Pago (Bronce $1 / Oro $10)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 10px; font-weight: 700; color: #38bdf8;">⚡ Micro-Hit</td>
+              <td style="padding: 10px; color: #38bdf8;">1 en 25 (4.0%)</td>
+              <td style="padding: 10px; font-family: monospace;">roll % 25 == 0</td>
+              <td style="padding: 10px;">Reembolso + 0.2% a 1% del Bote</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 10px; font-weight: 700; color: #10b981;">💥 Golpe Mayor</td>
+              <td style="padding: 10px; color: #10b981;">1 en 100 (1.0%)</td>
+              <td style="padding: 10px; font-family: monospace;">roll % 100 == 77</td>
+              <td style="padding: 10px;">Reembolso + 1% a 5% del Bote</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; font-weight: 700; color: #f59e0b;">🏆 Mega Jackpot</td>
+              <td style="padding: 10px; color: #f59e0b;">1 en 1,000 (0.1%)</td>
+              <td style="padding: 10px; font-family: monospace;">roll == 777</td>
+              <td style="padding: 10px; font-weight: 700; color: #fbbf24;">10% a 100% del Bote Completo</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Python Starter Kit -->
+    <div class="card">
+      <h2>🐍 Starter Kit en Python (Sniper Bot)</h2>
+      <p style="color: #94a3b8; font-size: 13px;">
+        Copia este script, instala <code>pip install websocket-client</code> y ejecútalo desde cualquier servidor o terminal. El bot se autenticará automáticamente y ejecutará órdenes de micro-fricción en tiempo real:
+      </p>
+
+      <pre><button class="copy-btn" onclick="copyCode('py-code')">Copiar</button><code id="py-code">import json
+import time
+import websocket
+
+WS_URL = "wss://gacha-protocol-628421927095.us-central1.run.app/ws"
+BOT_ID = f"python_trader_{int(time.time()) % 1000}"
+
+def on_message(ws, message):
+    data = json.loads(message)
+    msg_type = data.get("type")
+
+    if msg_type == "AUTH_SUCCESS":
+        print(f"✅ Conectado como {BOT_ID} | Bote actual: ${data.get('currentPot'):.2f}")
+        # Ejecutar orden de liquidación Bronce ($1.00 USD, reembolso $0.998)
+        ws.send(json.dumps({"action": "open_pack", "tier": "bronze"}))
+
+    elif msg_type == "PACK_RESULT":
+        print(f"📦 Roll #{data.get('roll')} | Payout: +${data.get('payout'):.3f} | Bote: ${data.get('currentPot'):.4f}")
+        if data.get("isJackpot"):
+            print(f"🎉🎉 ¡JACKPOT GANADO! +${data.get('jackpotWon'):.2f} USD")
+        time.sleep(0.05) # Control de velocidad (20 pings/s)
+        ws.send(json.dumps({"action": "open_pack", "tier": "bronze"}))
+
+def on_open(ws):
+    print("Conectando al protocolo...")
+    ws.send(json.dumps({
+        "action": "auth",
+        "playerId": BOT_ID, # Tu dirección de Solana o ID
+        "clientSeed": f"seed_{BOT_ID}"
+    }))
+
+ws = websocket.WebSocketApp(WS_URL, on_open=on_open, on_message=on_message)
+ws.run_forever()</code></pre>
+    </div>
+
+    <!-- Node.js Starter Kit -->
+    <div class="card">
+      <h2>⚡ Starter Kit en Node.js</h2>
+      <p style="color: #94a3b8; font-size: 13px;">
+        Script ultra-rápido en NodeJS usando WebSockets nativos:
+      </p>
+
+      <pre><button class="copy-btn" onclick="copyCode('js-code')">Copiar</button><code id="js-code">const WebSocket = require('ws');
+
+const ws = new WebSocket('wss://gacha-protocol-628421927095.us-central1.run.app/ws');
+const BOT_ID = `node_trader_${Date.now().toString(36)}`;
+
+ws.on('open', () => {
+  ws.send(JSON.stringify({ action: 'auth', playerId: BOT_ID }));
+});
+
+ws.on('message', (raw) => {
+  const msg = JSON.parse(raw);
+  if (msg.type === 'AUTH_SUCCESS' || msg.type === 'PACK_RESULT') {
+    if (msg.isJackpot) console.log(`🏆 JACKPOT GANADO: $${msg.jackpotWon} USD!`);
+    ws.send(JSON.stringify({ action: 'open_pack', tier: 'bronze' }));
+  }
+});</code></pre>
+    </div>
+
+    <!-- Provably Fair Verifier -->
+    <div class="card">
+      <h2>🔍 Verificador Criptográfico Provably Fair (En Vivo)</h2>
+      <p style="color: #94a3b8; font-size: 13px; margin-bottom: 14px;">
+        Demuestra matemáticamente que ningún resultado puede ser alterado por el servidor ni por el jugador.
+      </p>
+
+      <div class="input-group">
+        <label>Server Seed (Semilla secreta revelada):</label>
+        <input type="text" id="v-server-seed" placeholder="Ej: d7a8f3b2...">
+      </div>
+      <div class="input-group">
+        <label>Client Seed (Semilla elegida por el jugador):</label>
+        <input type="text" id="v-client-seed" placeholder="Ej: seed_player_123">
+      </div>
+      <div class="input-group">
+        <label>Nonce (Contador de tirada):</label>
+        <input type="number" id="v-nonce" value="1">
+      </div>
+
+      <button class="verify-btn" onclick="verifyRoll()">Verificar Tirada con SHA-256</button>
+
+      <div class="verify-result" id="verify-box">
+        <div style="font-weight: 700; color: #4ade80;" id="v-result-title"></div>
+        <div style="font-family: monospace; font-size: 12px; color: #cbd5e1; margin-top: 6px;" id="v-result-details"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function copyCode(id) {
+      const code = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(code);
+      alert("¡Código copiado al portapapeles!");
+    }
+
+    async function verifyRoll() {
+      const serverSeed = document.getElementById('v-server-seed').value.trim();
+      const clientSeed = document.getElementById('v-client-seed').value.trim();
+      const nonce = document.getElementById('v-nonce').value.trim();
+
+      if (!serverSeed || !clientSeed || !nonce) {
+        alert("Ingresa todos los campos para verificar.");
+        return;
+      }
+
+      const enc = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        'raw', enc.encode(serverSeed), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      );
+      const signature = await crypto.subtle.sign(
+        'HMAC', key, enc.encode(`${clientSeed}:${nonce}`)
+      );
+      const hashArray = Array.from(new Uint8Array(signature));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const subHex = hashHex.substring(0, 8);
+      const intVal = parseInt(subHex, 16);
+      const roll = intVal % 1000;
+      const isJackpot = (roll === 777);
+
+      const box = document.getElementById('verify-box');
+      box.style.display = 'block';
+      document.getElementById('v-result-title').innerText = isJackpot
+        ? `🏆 ¡TIRADA GANADORA DEL JACKPOT! (Roll: 777)`
+        : `✅ Tirada Verificada: Roll #${roll} (${isJackpot ? 'Ganador' : 'Sin Jackpot'})`;
+      
+      document.getElementById('v-result-details').innerHTML = `
+        <strong>HMAC-SHA256 Hash:</strong> ${hashHex}<br>
+        <strong>Sub-Hex (32-bit):</strong> ${subHex} -> <strong>Entero:</strong> ${intVal}<br>
+        <strong>Fórmula:</strong> ${intVal} % 1000 = <strong>${roll}</strong>
+      `;
+    }
+  </script>
+</body>
+</html>
