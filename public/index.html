@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚡ Solana Quant Arena v2 — High-Frequency +EV Protocol</title>
+  <title>⚡ Solana Quant Arena v2 — High-Frequency +EV Protocol & HFT Swarm Engine</title>
   <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 </head>
 <body>
@@ -15,33 +15,33 @@
       <span class="logo-bolt">⚡</span>
       <div>
         <h1 class="logo-title">SOLANA QUANT ARENA <span class="badge-v2">v2.0</span></h1>
-        <p class="logo-sub">Non-Custodial Multi-Table +EV Protocol & HFT Swarm Engine</p>
+        <p class="logo-sub">Autonomous Multi-Table +EV Liquidity Protocol & HFT Execution Engine</p>
       </div>
     </div>
 
     <div class="metrics-strip">
       <div class="metric-item">
-        <span class="metric-label">TPS GLOBAL</span>
-        <span class="metric-val text-cyan" id="metric-tps">0 tiradas/s</span>
+        <span class="metric-label">GLOBAL TPS</span>
+        <span class="metric-val text-cyan" id="metric-tps">0 orders/s</span>
       </div>
       <div class="metric-item">
-        <span class="metric-label">BOTS ACTIVOS</span>
+        <span class="metric-label">ACTIVE SWARM</span>
         <span class="metric-val text-purple" id="metric-bots">0 bots</span>
       </div>
       <div class="metric-item">
-        <span class="metric-label">FONDO AUTO-REFUEL</span>
+        <span class="metric-label">AUTO-REFUEL RESERVE</span>
         <span class="metric-val text-green" id="metric-cushion">$50.00 USD</span>
       </div>
       <div class="metric-item">
-        <span class="metric-label">EPOCH POOL (7D)</span>
+        <span class="metric-label">7D EPOCH POOL</span>
         <span class="metric-val text-gold" id="metric-epoch">$0.00 USD</span>
       </div>
     </div>
 
     <div class="wallet-controls">
-      <button class="btn btn-emerald" id="btn-open-deposit">💰 Depositar SOL</button>
-      <button class="btn btn-secondary" id="btn-faucet">💧 Faucet Demo (+$25)</button>
-      <button class="btn btn-primary" id="btn-connect-wallet">👻 Conectar Phantom</button>
+      <button class="btn btn-emerald" id="btn-open-deposit">💰 Deposit SOL</button>
+      <button class="btn btn-secondary" id="btn-faucet">💧 Sandbox Faucet (+$25)</button>
+      <button class="btn btn-primary" id="btn-connect-wallet">👻 Connect Phantom</button>
     </div>
   </header>
 
@@ -53,25 +53,25 @@
       <!-- 🟢 REAL ON-CHAIN BOX -->
       <div class="audit-card real-card">
         <div class="audit-header">
-          <span class="badge-pill green">🟢 AUDITORÍA ON-CHAIN (SOLANA MAINNET REAL)</span>
-          <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" class="audit-link">Ver en Solscan ↗</a>
+          <span class="badge-pill green">🟢 MAINNET LIVE AUDIT (VERIFIED ON-CHAIN)</span>
+          <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" class="audit-link">View on Solscan ↗</a>
         </div>
         <div class="audit-stats-grid">
           <div class="audit-stat">
-            <span class="stat-lbl">SALDO REAL EN BÓVEDA:</span>
-            <span class="stat-num text-green" id="vault-real-sol">0.00089 SOL (~$0.09 USD)</span>
+            <span class="stat-lbl">VAULT LIQUIDITY:</span>
+            <span class="stat-num text-green" id="vault-real-sol">0.00000 SOL (~$0.00 USD)</span>
           </div>
           <div class="audit-stat">
-            <span class="stat-lbl">VOLUMEN REAL TRANSACCIONADO:</span>
+            <span class="stat-lbl">TOTAL REAL VOLUME:</span>
             <span class="stat-num" id="stat-real-volume">$0.00 USD</span>
           </div>
           <div class="audit-stat">
-            <span class="stat-lbl">GANANCIA REAL CASA (FUNDADOR):</span>
-            <span class="stat-num text-gold" id="stat-real-profit">$0.00 USD (0.000 SOL)</span>
+            <span class="stat-lbl">PROTOCOL REVENUE:</span>
+            <span class="stat-num text-gold" id="stat-real-profit">$0.00 USD</span>
           </div>
           <div class="audit-stat">
-            <span class="stat-lbl">DEPÓSITOS ON-CHAIN VERIFICADOS:</span>
-            <span class="stat-num text-cyan" id="stat-real-deposits">0 depósitos</span>
+            <span class="stat-lbl">ON-CHAIN DEPOSITS:</span>
+            <span class="stat-num text-cyan" id="stat-real-deposits">0 verified</span>
           </div>
         </div>
       </div>
@@ -79,25 +79,25 @@
       <!-- 🟡 DEMO SANDBOX BOX -->
       <div class="audit-card demo-card">
         <div class="audit-header">
-          <span class="badge-pill yellow">🟡 MODO SIMULADOR / SANDBOX (VIRTUAL)</span>
-          <span class="audit-tag">Pruebas sin riesgo</span>
+          <span class="badge-pill yellow">🟡 SANDBOX SIMULATOR (ZERO RISK)</span>
+          <span class="audit-tag">Paper Trading Cluster</span>
         </div>
         <div class="audit-stats-grid">
           <div class="audit-stat">
-            <span class="stat-lbl">VOLUMEN SIMULADO:</span>
+            <span class="stat-lbl">SIMULATED VOLUME:</span>
             <span class="stat-num text-muted" id="stat-demo-volume">$0.00 USD</span>
           </div>
           <div class="audit-stat">
-            <span class="stat-lbl">TIRADAS DEMO:</span>
-            <span class="stat-num text-muted" id="stat-demo-rolls">0 tiradas</span>
+            <span class="stat-lbl">SIMULATED ORDERS:</span>
+            <span class="stat-num text-muted" id="stat-demo-rolls">0 orders</span>
           </div>
           <div class="audit-stat">
-            <span class="stat-lbl">GANANCIA DEMO VIRTUAL:</span>
+            <span class="stat-lbl">SIMULATED PNL:</span>
             <span class="stat-num text-muted" id="stat-demo-profit">$0.00 USD</span>
           </div>
           <div class="audit-stat">
-            <span class="stat-lbl">ESTADO FAUCET:</span>
-            <span class="stat-num text-green">DISPONIBLE (+$25)</span>
+            <span class="stat-lbl">FAUCET STATUS:</span>
+            <span class="stat-num text-green">AVAILABLE (+$25)</span>
           </div>
         </div>
       </div>
@@ -107,92 +107,92 @@
     <section class="user-terminal-bar">
       <div class="user-info">
         <span class="user-badge" id="user-badge">TRADER ID: <strong id="user-id-display">anon_guest</strong></span>
-        <span class="user-balance">🟢 Saldo Real: <strong class="text-green" id="user-real-balance">$0.00 USD</strong></span>
-        <span class="user-balance">🟡 Saldo Demo: <strong class="text-gold" id="user-demo-balance">$0.00 USD</strong></span>
-        <span class="user-rakeback">Rakeback: <strong class="text-gold" id="user-rakeback-display">$0.00 USD</strong></span>
+        <span class="user-balance">🟢 Real Balance: <strong class="text-green" id="user-real-balance">$0.00 USD</strong></span>
+        <span class="user-balance">🟡 Demo Balance: <strong class="text-gold" id="user-demo-balance">$0.00 USD</strong></span>
+        <span class="user-rakeback">Rakeback Yield: <strong class="text-gold" id="user-rakeback-display">$0.00 USD</strong></span>
       </div>
       <div class="user-actions">
         <select id="select-play-mode" class="mode-select">
-          <option value="AUTO">⚡ Modo: Automático (Usa Real si fondeado, sino Demo)</option>
-          <option value="REAL">🟢 Modo: Solo Real (Solana On-Chain)</option>
-          <option value="DEMO">🟡 Modo: Solo Demo (Prueba Virtual)</option>
+          <option value="AUTO">⚡ Auto-Route (Real first, fallback to Sandbox)</option>
+          <option value="REAL">🟢 Live Mainnet (Real SOL On-Chain)</option>
+          <option value="DEMO">🟡 Sandbox Simulation (Zero Risk)</option>
         </select>
-        <button class="btn btn-sm btn-gold" id="btn-claim-rakeback" disabled>💸 Reclamar Cashback</button>
-        <button class="btn btn-sm btn-outline" id="btn-withdraw">🚀 Retirar SOL Real</button>
+        <button class="btn btn-sm btn-gold" id="btn-claim-rakeback" disabled>💸 Claim Yield</button>
+        <button class="btn btn-sm btn-outline" id="btn-withdraw">🚀 Withdraw SOL</button>
       </div>
     </section>
 
     <!-- Multi-Table Radar Grid -->
     <section class="section-title">
-      <h2>📡 RADAR MULTI-MESA ON-CHAIN (ARBITRAJE +EV EN VIVO)</h2>
-      <p>Los algoritmos enrutan automáticamente sus órdenes hacia la mesa con mayor retorno sobre la fricción.</p>
+      <h2>📡 LIVE MULTI-TABLE RADAR (+EV ARBITRAGE SCANNER)</h2>
+      <p>Algorithmic smart-routing continuously targets the highest expected value liquidity pool across three execution tiers.</p>
     </section>
 
     <div class="tables-grid">
-      <!-- Mesa 1: Flash -->
+      <!-- Table 1: Flash -->
       <div class="table-card" id="card-flash">
-        <div class="table-badge badge-flash">MESA 1: FLASH (0.2% FRICCIÓN)</div>
+        <div class="table-badge badge-flash">TABLE 1: FLASH (0.2% FRICTION)</div>
         <h3 class="table-name">⚡ Micro Blitz ($0.10)</h3>
         <div class="table-pot-box">
-          <span class="pot-title">BOTE PROGRESIVO</span>
+          <span class="pot-title">PROGRESSIVE POT</span>
           <span class="pot-amount text-cyan" id="pot-flash">$10.00 USD</span>
         </div>
         <div class="ev-meter-box">
-          <div class="ev-meter-label">RETORNO ESPERADO (+EV):</div>
+          <div class="ev-meter-label">EXPECTED RETURN (+EV):</div>
           <div class="ev-percentage text-green" id="ev-flash">+145.0%</div>
-          <div class="ev-status text-green">🔥 ÓPTIMO PARA RÁFAGAS MICRO</div>
+          <div class="ev-status text-green">🔥 OPTIMAL FOR MICRO BURSTS</div>
         </div>
         <div class="table-specs">
-          <div>Precio: <strong>$0.10 USD</strong></div>
+          <div>Order Size: <strong>$0.10 USD</strong></div>
           <div>Soft-Refund: <strong>$0.0998</strong> (99.8%)</div>
-          <div>Jackpot: <strong>50% del Bote</strong></div>
-          <div>Micro-Hits: <strong>1 en 25 (4%)</strong></div>
+          <div>Jackpot Share: <strong>50% of Pot</strong></div>
+          <div>Micro-Hits: <strong>1 in 25 (4.0%)</strong></div>
         </div>
-        <button class="btn btn-table btn-flash" onclick="triggerOrder('flash')">DISPARAR ORDEN ($0.10)</button>
+        <button class="btn btn-table btn-flash" onclick="triggerOrder('flash')">FIRE ORDER ($0.10)</button>
       </div>
 
-      <!-- Mesa 2: Classic -->
+      <!-- Table 2: Classic -->
       <div class="table-card featured" id="card-classic">
-        <div class="table-badge badge-classic">MESA 2: CLÁSICA (ESTÁNDAR)</div>
+        <div class="table-badge badge-classic">TABLE 2: CLASSIC (STANDARDIZED POOL)</div>
         <h3 class="table-name">⚖️ Classic Arena ($1.00)</h3>
         <div class="table-pot-box">
-          <span class="pot-title">BOTE PROGRESIVO</span>
+          <span class="pot-title">PROGRESSIVE POT</span>
           <span class="pot-amount text-gold" id="pot-classic">$50.00 USD</span>
         </div>
         <div class="ev-meter-box">
-          <div class="ev-meter-label">RETORNO ESPERADO (+EV):</div>
+          <div class="ev-meter-label">EXPECTED RETURN (+EV):</div>
           <div class="ev-percentage text-gold" id="ev-classic">+185.0%</div>
-          <div class="ev-status text-gold">⚡ CONDICIÓN +EV ACTIVA</div>
+          <div class="ev-status text-gold">⚡ ACTIVE +EV SURGE</div>
         </div>
         <div class="table-specs">
-          <div>Precio: <strong>$1.00 USD</strong></div>
+          <div>Order Size: <strong>$1.00 USD</strong></div>
           <div>Soft-Refund: <strong>$0.998</strong> (99.8%)</div>
-          <div>Jackpot: <strong>75% del Bote</strong></div>
-          <div>Major-Hits: <strong>1 en 111 (0.9%)</strong></div>
+          <div>Jackpot Share: <strong>75% of Pot</strong></div>
+          <div>Major-Hits: <strong>1 in 100 (1.0%)</strong></div>
         </div>
-        <button class="btn btn-table btn-classic" onclick="triggerOrder('classic')">DISPARAR ORDEN ($1.00)</button>
+        <button class="btn btn-table btn-classic" onclick="triggerOrder('classic')">FIRE ORDER ($1.00)</button>
       </div>
 
-      <!-- Mesa 3: Whale -->
+      <!-- Table 3: Whale -->
       <div class="table-card" id="card-whale">
-        <div class="table-badge badge-whale">MESA 3: THE WHALE (MACRO)</div>
+        <div class="table-badge badge-whale">TABLE 3: THE WHALE (MACRO SYNDICATE)</div>
         <h3 class="table-name">🐋 Whale Syndicate ($10.00)</h3>
         <div class="table-pot-box">
-          <span class="pot-title">BOTE PROGRESIVO</span>
+          <span class="pot-title">PROGRESSIVE POT</span>
           <span class="pot-amount text-purple" id="pot-whale">$250.00 USD</span>
         </div>
         <div class="ev-meter-box">
-          <div class="ev-meter-label">RETORNO ESPERADO (+EV):</div>
+          <div class="ev-meter-label">EXPECTED RETURN (+EV):</div>
           <div class="ev-percentage text-purple" id="ev-whale">+242.5%</div>
           <div class="ev-status text-purple">🚀 MEGA JACKPOT HUNTING</div>
         </div>
         <div class="table-specs">
-          <div>Precio: <strong>$10.00 USD</strong></div>
+          <div>Order Size: <strong>$10.00 USD</strong></div>
           <div>Soft-Refund: <strong>$9.980</strong> (99.8%)</div>
-          <div>Jackpot: <strong>100% del Bote</strong></div>
-          <div>Micro-Hits: <strong>1 en 25 (4%)</strong></div>
+          <div>Jackpot Share: <strong>100% of Pot</strong></div>
+          <div>Micro-Hits: <strong>1 in 25 (4.0%)</strong></div>
         </div>
-        <button class="btn btn-table btn-whale" onclick="triggerOrder('whale')">DISPARAR ORDEN ($10.00)</button>
+        <button class="btn btn-table btn-whale" onclick="triggerOrder('whale')">FIRE ORDER ($10.00)</button>
       </div>
     </div>
 
@@ -201,36 +201,36 @@
       <!-- Live Feed -->
       <div class="panel-box">
         <div class="panel-header">
-          <h3>📡 CONSOLA DE ÓRDENES & AUDITORÍA EN TIEMPO REAL</h3>
+          <h3>📡 REAL-TIME ORDER FEED & AUDIT TELEMETRY</h3>
           <span class="live-dot"></span>
         </div>
         <div class="console-stream" id="console-stream">
-          <div class="log-row info">[SISTEMA] Motor particionado activo. Conectado a Solana Mainnet RPC...</div>
+          <div class="log-row info">[SYSTEM] Partitioned HFT Engine active. Connected to Solana Mainnet RPC...</div>
         </div>
       </div>
 
       <!-- Leaderboard with Tabs -->
       <div class="panel-box">
         <div class="panel-header">
-          <h3>🏆 LEADERBOARD DE BOTS</h3>
+          <h3>🏆 QUANT TRADER LEADERBOARD</h3>
           <div class="tab-buttons">
-            <button class="tab-btn active" id="tab-btn-real" onclick="switchLeaderboardTab('REAL')">🟢 On-Chain Real</button>
-            <button class="tab-btn" id="tab-btn-demo" onclick="switchLeaderboardTab('DEMO')">🟡 Simulador Demo</button>
+            <button class="tab-btn active" id="tab-btn-real" onclick="switchLeaderboardTab('REAL')">🟢 Mainnet Real</button>
+            <button class="tab-btn" id="tab-btn-demo" onclick="switchLeaderboardTab('DEMO')">🟡 Sandbox Demo</button>
           </div>
         </div>
         <div class="table-responsive">
           <table class="leaderboard-table">
             <thead>
               <tr>
-                <th>Bot / Wallet</th>
-                <th>Tiradas</th>
-                <th>Volumen</th>
-                <th>Rakeback Ganado</th>
-                <th>Estado</th>
+                <th>Trader / Bot ID</th>
+                <th>Orders</th>
+                <th>Volume</th>
+                <th>Yield Earned</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody id="leaderboard-body">
-              <tr><td colspan="5" class="text-muted">Cargando clasificación...</td></tr>
+              <tr><td colspan="5" class="text-muted">Loading leaderboard standings...</td></tr>
             </tbody>
           </table>
         </div>
@@ -240,15 +240,15 @@
     <!-- Provably Fair Verification Footer -->
     <footer class="proof-footer">
       <div>
-        <strong>🛡️ Verificación Criptográfica Provably Fair (HMAC-SHA256):</strong>
-        <span class="text-muted" id="server-seed-hash">Hash: Cargando...</span>
+        <strong>🛡️ Provably Fair Cryptographic Verification (HMAC-SHA256):</strong>
+        <span class="text-muted" id="server-seed-hash">Hash: Loading...</span>
       </div>
       <div class="proof-links">
-        <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" id="footer-solscan-link">🔍 Ver Bóveda en Solscan</a>
+        <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" id="footer-solscan-link">🔍 View Vault on Solscan</a>
         <span>•</span>
-        <a href="https://github.com/rockags/hft-ev-arena-solana" target="_blank">Repositorio en GitHub</a>
+        <a href="https://github.com/rockags/hft-ev-arena-solana" target="_blank">GitHub Repository</a>
         <span>•</span>
-        <a href="/api/stats" target="_blank">API Telemetría JSON</a>
+        <a href="/api/stats" target="_blank">JSON API Stream</a>
       </div>
     </footer>
 
@@ -256,21 +256,21 @@
     <div class="modal-overlay" id="modal-deposit">
       <div class="modal-box">
         <button class="modal-close" onclick="closeDepositModal()">&times;</button>
-        <h3 style="margin-bottom: 0.5rem; color: #10b981;">💰 Depositar SOL Real (Solana Mainnet)</h3>
+        <h3 style="margin-bottom: 0.5rem; color: #00FFA3;">💰 Deposit Real SOL (Solana Mainnet)</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
-          Transfiere SOL desde tu wallet favorita (Phantom, Solflare, Bitso, Binance, Coinbase). Tu depósito se acreditará automáticamente en menos de 5 segundos.
+          Transfer SOL from any wallet (Phantom, Solflare, Bitso, Binance, Coinbase). Your deposit credits automatically in under 5 seconds.
         </p>
 
         <div style="margin-top: 1rem;">
-          <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">DIRECCIÓN DE LA BÓVEDA (MAINNET):</label>
+          <label style="font-size: 0.72rem; color: var(--text-dim); font-weight: 700;">OFFICIAL MAINNET VAULT ADDRESS:</label>
           <div class="deposit-address-box">
             <input type="text" readonly id="vault-deposit-input" value="GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3">
-            <button class="btn btn-sm btn-secondary" id="btn-copy-vault-address">📋 Copiar</button>
+            <button class="btn btn-sm btn-secondary" id="btn-copy-vault-address">📋 Copy</button>
           </div>
         </div>
 
-        <div id="phantom-quick-deposit" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-          <label style="font-size: 0.75rem; color: var(--cyan); font-weight: 700;">⚡ DEPÓSITO DIRECTO CON PHANTOM (1 CLIC):</label>
+        <div id="phantom-quick-deposit" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+          <label style="font-size: 0.72rem; color: var(--cyan); font-weight: 700;">⚡ ONE-CLICK PHANTOM DEPOSIT:</label>
           <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
             <button class="btn btn-sm btn-outline" onclick="quickDepositPhantom(0.05)">+0.05 SOL</button>
             <button class="btn btn-sm btn-outline" onclick="quickDepositPhantom(0.10)">+0.10 SOL</button>
@@ -279,9 +279,9 @@
           </div>
         </div>
 
-        <div style="margin-top: 1rem; font-size: 0.75rem; display: flex; justify-content: space-between;">
-          <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" style="color: #38bdf8;">Ver en Solscan ↗</a>
-          <span style="color: #10b981;">🛡️ Detección en tiempo real activa</span>
+        <div style="margin-top: 1.25rem; font-size: 0.72rem; display: flex; justify-content: space-between;">
+          <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" style="color: #00F5FF;">View on Solscan ↗</a>
+          <span style="color: #00FFA3;">🛡️ Real-Time On-Chain Watcher Active</span>
         </div>
       </div>
     </div>
@@ -290,27 +290,27 @@
     <div class="modal-overlay" id="modal-withdraw">
       <div class="modal-box">
         <button class="modal-close" onclick="closeWithdrawModal()">&times;</button>
-        <h3 style="margin-bottom: 0.5rem; color: #fbbf24;">🚀 Retirar SOL Real On-Chain</h3>
+        <h3 style="margin-bottom: 0.5rem; color: #FFB800;">🚀 Instant On-Chain SOL Withdrawal</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
-          Envía tus fondos ganados directamente a tu wallet en Solana Mainnet sin fricción.
+          Transfer your settled real funds directly back to your Solana wallet on Mainnet with zero platform withdrawal fees.
         </p>
 
         <div style="margin: 1rem 0;">
-          <div style="font-size: 0.85rem; margin-bottom: 0.5rem;">
-            Saldo Real Disponible: <strong class="text-green" id="withdraw-available-usd">$0.00 USD</strong>
+          <div style="font-size: 0.85rem; margin-bottom: 0.75rem;">
+            Available Real Balance: <strong class="text-green" id="withdraw-available-usd">$0.00 USD</strong>
           </div>
-          <div class="input-group" style="margin-bottom: 0.75rem;">
-            <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">DIRECCIÓN DE DESTINO EN SOLANA:</label>
-            <input type="text" id="withdraw-dest-input" placeholder="Tu wallet de Solana (ej. Phantom o Bitso)" style="width: 100%; padding: 0.6rem; border-radius: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); color: #fff; font-family: var(--font-mono); font-size: 0.8rem;">
+          <div style="margin-bottom: 0.85rem;">
+            <label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 4px; font-weight: 700;">DESTINATION SOLANA WALLET:</label>
+            <input type="text" id="withdraw-dest-input" placeholder="Your Solana wallet address (e.g. Phantom, Bitso)" style="width: 100%; padding: 0.65rem; border-radius: 8px; background: #06080F; border: 1px solid var(--border-subtle); color: #fff; font-family: var(--font-mono); font-size: 0.8rem; outline: none;">
           </div>
-          <div class="input-group">
-            <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">MONTO A RETIRAR (USD):</label>
-            <input type="number" id="withdraw-amt-input" min="0.10" step="0.10" placeholder="Ej. 5.00" style="width: 100%; padding: 0.6rem; border-radius: 6px; background: var(--bg-primary); border: 1px solid var(--border-color); color: #fff; font-family: var(--font-mono); font-size: 0.8rem;">
+          <div>
+            <label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 4px; font-weight: 700;">AMOUNT TO WITHDRAW (USD):</label>
+            <input type="number" id="withdraw-amt-input" min="0.10" step="0.10" placeholder="e.g. 5.00" style="width: 100%; padding: 0.65rem; border-radius: 8px; background: #06080F; border: 1px solid var(--border-subtle); color: #fff; font-family: var(--font-mono); font-size: 0.8rem; outline: none;">
           </div>
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-gold" style="width: 100%;" id="btn-submit-withdraw">Confirmar y Enviar Retiro On-Chain</button>
+          <button class="btn btn-gold" style="width: 100%; justify-content: center;" id="btn-submit-withdraw">Confirm & Broadcast On-Chain Withdrawal</button>
         </div>
       </div>
     </div>
