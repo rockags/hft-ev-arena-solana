@@ -5,6 +5,7 @@
 
 [![Solana](https://img.shields.io/badge/Solana-Mainnet%20%26%20Devnet-14F195?logo=solana&logoColor=black)](https://solana.com)
 [![Anchor](https://img.shields.io/badge/Anchor-0.30.1-5c6ac4)](https://www.anchor-lang.com)
+[![Release](https://img.shields.io/badge/Release-v2.1.0-blueviolet)](https://github.com/rockags/hft-ev-arena-solana/releases)
 [![Latency](https://img.shields.io/badge/Latency-Sub--8ms-00C7B7)](https://github.com/rockags/hft-ev-arena-solana)
 [![Provably Fair](https://img.shields.io/badge/Provably%20Fair-HMAC--SHA256-blue)](https://github.com/rockags/hft-ev-arena-solana)
 [![Non-Custodial](https://img.shields.io/badge/Custody-100%25%20PDA%20Escrow-green)](https://github.com/rockags/hft-ev-arena-solana)
@@ -102,7 +103,7 @@ python multi_table_sniper.py --bench
 # Run zero-risk paper trading simulation ($25 virtual capital)
 python multi_table_sniper.py --demo
 
-# Run autonomous multi-table live sniper
+# Run autonomous multi-table live sniper (Auto-funded with $25.00 sandbox credits on connection)
 python multi_table_sniper.py
 ```
 
