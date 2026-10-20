@@ -49,7 +49,10 @@
     <div class="wallet-controls">
       <button class="btn btn-emerald" id="btn-open-deposit">💰 Deposit SOL</button>
       <button class="btn btn-secondary" id="btn-faucet">💧 Sandbox Faucet (+$25)</button>
-      <button class="btn btn-primary" id="btn-connect-wallet">👻 Connect Phantom</button>
+      <div class="wallet-btn-group" style="display: flex; gap: 6px; align-items: center;">
+        <button class="btn btn-primary" id="btn-connect-wallet">👻 Connect Phantom</button>
+        <button class="btn btn-sm btn-outline" id="btn-disconnect-wallet" style="display: none; padding: 0.5rem 0.65rem; border-color: rgba(239, 68, 68, 0.4); color: #EF4444;" title="Disconnect Wallet / Logout">⏻ Logout</button>
+      </div>
     </div>
   </header>
 
@@ -283,9 +286,12 @@
 
         <!-- TAB 1: INSTANT WEB3 DEPOSIT (PREDICT.FUN STYLE) -->
         <div class="cashier-view active" id="view-instant">
-          <div class="wallet-status-bar">
-            <span style="color: var(--text-dim);">Connected Wallet:</span>
-            <span id="cashier-wallet-label" style="color: var(--cyan); font-weight: 700;">Not connected</span>
+          <div class="wallet-status-bar" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="color: var(--text-dim);">Connected Wallet:</span>
+              <span id="cashier-wallet-label" style="color: var(--cyan); font-weight: 700;">Not connected</span>
+            </div>
+            <button id="cashier-disconnect-link" onclick="disconnectPhantomWallet()" style="display: none; background: transparent; border: none; color: #EF4444; font-size: 0.72rem; cursor: pointer; text-decoration: underline; font-family: var(--font-mono); font-weight: 700;">[Disconnect Wallet]</button>
           </div>
 
           <label style="font-size: 0.72rem; color: var(--text-dim); font-weight: 700; margin-bottom: 4px; display: block;">SELECT OR ENTER DEPOSIT AMOUNT:</label>

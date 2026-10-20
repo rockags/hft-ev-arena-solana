@@ -245,17 +245,76 @@ btnFaucet.addEventListener('click', async () => {
   }
 });
 
-// Connect Phantom Wallet
-btnConnectWallet.addEventListener('click', async () => {
+// Wallet Connection & Disconnect Handlers
+const btnDisconnectWallet = document.getElementById('btn-disconnect-wallet');
+const cashierDisconnectLink = document.getElementById('cashier-disconnect-link');
+
+function setWalletConnectedState(pubKey) {
+  phantomAddress = pubKey;
+  currentUserId = pubKey;
+  localStorage.setItem('quant_user_id', pubKey);
+  userIdDisplay.textContent = `${pubKey.substring(0, 6)}...${pubKey.substring(pubKey.length - 4)}`;
+  btnConnectWallet.innerHTML = `👻 ${pubKey.substring(0, 4)}...${pubKey.substring(pubKey.length - 4)}`;
+  btnConnectWallet.classList.remove('btn-primary');
+  btnConnectWallet.classList.add('btn-emerald');
+
+  if (btnDisconnectWallet) btnDisconnectWallet.style.display = 'inline-flex';
+  if (cashierDisconnectLink) cashierDisconnectLink.style.display = 'inline-block';
+
+  if (cashierWalletLabel) {
+    cashierWalletLabel.textContent = `👻 ${pubKey.substring(0, 6)}...${pubKey.substring(pubKey.length - 4)}`;
+    cashierWalletLabel.style.color = 'var(--emerald)';
+  }
+
+  const destInput = document.getElementById('withdraw-dest-input');
+  if (destInput && !destInput.value) {
+    destInput.value = pubKey;
+  }
+}
+
+window.disconnectPhantomWallet = async function() {
+  if (window.phantom && window.phantom.solana) {
+    try {
+      await window.phantom.solana.disconnect();
+    } catch (e) {}
+  }
+  phantomAddress = null;
+  localStorage.removeItem('quant_user_id');
+  currentUserId = `trader_${Math.random().toString(36).substring(2, 7)}`;
+  localStorage.setItem('quant_user_id', currentUserId);
+
+  userIdDisplay.textContent = currentUserId;
+  btnConnectWallet.innerHTML = '👻 Connect Phantom';
+  btnConnectWallet.classList.remove('btn-emerald');
+  btnConnectWallet.classList.add('btn-primary');
+
+  if (btnDisconnectWallet) btnDisconnectWallet.style.display = 'none';
+  if (cashierDisconnectLink) cashierDisconnectLink.style.display = 'none';
+
+  if (cashierWalletLabel) {
+    cashierWalletLabel.textContent = 'Not connected';
+    cashierWalletLabel.style.color = 'var(--cyan)';
+  }
+
+  const destInput = document.getElementById('withdraw-dest-input');
+  if (destInput && destInput.value === phantomAddress) {
+    destInput.value = '';
+  }
+
+  addLog('Phantom Wallet disconnected. Session reset to guest trader.', 'info');
+
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ action: "auth", playerId: currentUserId }));
+  }
+};
+
+window.connectPhantomWallet = async function() {
   if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) {
     try {
       const resp = await window.phantom.solana.connect();
-      phantomAddress = resp.publicKey.toString();
-      currentUserId = phantomAddress;
-      localStorage.setItem('quant_user_id', currentUserId);
-      userIdDisplay.textContent = `${phantomAddress.substring(0, 6)}...${phantomAddress.substring(phantomAddress.length - 4)}`;
-      btnConnectWallet.textContent = `👻 ${phantomAddress.substring(0, 4)}...`;
-      addLog(`Phantom Wallet connected: ${phantomAddress}`, "hit");
+      const pubKey = resp.publicKey.toString();
+      setWalletConnectedState(pubKey);
+      addLog(`Phantom Wallet connected: ${pubKey}`, "hit");
 
       if (ws && ws.readyState === 1) {
         ws.send(JSON.stringify({ action: "auth", playerId: currentUserId }));
@@ -266,7 +325,25 @@ btnConnectWallet.addEventListener('click', async () => {
   } else {
     alert("Solana Phantom Wallet not detected. Please install Phantom from phantom.app");
   }
-});
+};
+
+if (btnConnectWallet) {
+  btnConnectWallet.addEventListener('click', async () => {
+    if (phantomAddress) {
+      if (confirm(`Connected to Phantom:\n${phantomAddress}\n\nDo you want to disconnect / logout?`)) {
+        disconnectPhantomWallet();
+      }
+      return;
+    }
+    await connectPhantomWallet();
+  });
+}
+
+if (btnDisconnectWallet) {
+  btnDisconnectWallet.addEventListener('click', () => {
+    disconnectPhantomWallet();
+  });
+}
 
 // Dynamic Rate & Previews
 let solUsdRate = 105.00;
@@ -316,13 +393,16 @@ window.switchCashierTab = function(tabName) {
 };
 
 window.openCashierModal = function(defaultTab = 'instant') {
+  const cashierDisc = document.getElementById('cashier-disconnect-link');
   if (cashierWalletLabel) {
     if (phantomAddress) {
       cashierWalletLabel.textContent = `👻 ${phantomAddress.substring(0, 6)}...${phantomAddress.substring(phantomAddress.length - 4)}`;
       cashierWalletLabel.style.color = 'var(--emerald)';
+      if (cashierDisc) cashierDisc.style.display = 'inline-block';
     } else {
       cashierWalletLabel.textContent = 'Not connected (1-click connects Phantom)';
       cashierWalletLabel.style.color = 'var(--cyan)';
+      if (cashierDisc) cashierDisc.style.display = 'none';
     }
   }
   if (withdrawAvailableUsd) {
@@ -413,14 +493,7 @@ window.quickDepositPhantom = async function(solAmount) {
   try {
     if (!phantomAddress) {
       const resp = await window.phantom.solana.connect();
-      phantomAddress = resp.publicKey.toString();
-      currentUserId = phantomAddress;
-      localStorage.setItem('quant_user_id', currentUserId);
-      userIdDisplay.textContent = `${phantomAddress.substring(0, 6)}...${phantomAddress.substring(phantomAddress.length - 4)}`;
-      if (cashierWalletLabel) {
-        cashierWalletLabel.textContent = `👻 ${phantomAddress.substring(0, 6)}...${phantomAddress.substring(phantomAddress.length - 4)}`;
-        cashierWalletLabel.style.color = 'var(--emerald)';
-      }
+      setWalletConnectedState(resp.publicKey.toString());
     }
 
     if (typeof solanaWeb3 === 'undefined') {
