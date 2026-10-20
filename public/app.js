@@ -38,17 +38,33 @@ function addLog(msg, type = 'info') {
 }
 
 // Connect to WebSocket Engine
+let pingInterval = null;
+let isFirstConnect = true;
+let reconnectTimeout = null;
+
 function connectWS() {
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
   const wsUrl = `${protocol}//${location.host}`;
   ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
-    addLog("✅ Conectado al motor HFT de Solana Quant Arena", "info");
+    if (isFirstConnect) {
+      addLog("✅ Conectado al motor HFT de Solana Quant Arena", "info");
+      isFirstConnect = false;
+    }
+    // Re-authenticate
     ws.send(JSON.stringify({
       action: "auth",
       playerId: currentUserId
     }));
+
+    // Client-side keepalive ping every 15s to keep proxy stream active
+    if (pingInterval) clearInterval(pingInterval);
+    pingInterval = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ action: "ping", timestamp: Date.now() }));
+      }
+    }, 15000);
   };
 
   ws.onmessage = (event) => {
@@ -59,8 +75,10 @@ function connectWS() {
   };
 
   ws.onclose = () => {
-    addLog("⚠️ Conexión perdida con el motor. Reconectando en 2s...", "info");
-    setTimeout(connectWS, 2000);
+    if (pingInterval) clearInterval(pingInterval);
+    // Seamless silent auto-reconnect in 500ms
+    if (reconnectTimeout) clearTimeout(reconnectTimeout);
+    reconnectTimeout = setTimeout(connectWS, 500);
   };
 }
 

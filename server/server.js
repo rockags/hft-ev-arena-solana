@@ -217,7 +217,18 @@ setInterval(() => {
   }
 }, 250);
 
+// Keep-alive heartbeat ping every 20s
+setInterval(() => {
+  for (const client of wss.clients) {
+    if (client.isAlive === false) return client.terminate();
+    client.isAlive = false;
+    client.ping();
+  }
+}, 20000);
+
 wss.on('connection', (ws) => {
+  ws.isAlive = true;
+  ws.on('pong', () => { ws.isAlive = true; });
   let authenticatedPlayerId = null;
 
   ws.on('message', async (raw) => {
