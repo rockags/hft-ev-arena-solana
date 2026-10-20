@@ -262,27 +262,127 @@ btnConnectWallet.addEventListener('click', async () => {
   }
 });
 
-// Deposit Modal Handlers
-const modalDeposit = document.getElementById('modal-deposit');
-const btnOpenDeposit = document.getElementById('btn-open-deposit');
-const btnCopyVaultAddress = document.getElementById('btn-copy-vault-address');
+// Dynamic Rate & Previews
+let solUsdRate = 105.00;
+
+function updateInstantPreview() {
+  const input = document.getElementById('instant-deposit-amount');
+  const preview = document.getElementById('instant-usd-preview');
+  const summaryCredited = document.getElementById('summary-credited-usd');
+  if (!input) return;
+  const val = parseFloat(input.value) || 0;
+  const usd = (val * solUsdRate).toFixed(2);
+  if (preview) preview.textContent = `≈ $${usd} USD`;
+  if (summaryCredited) summaryCredited.textContent = `+$${usd} USD`;
+}
+
+function updateWithdrawPreview() {
+  const input = document.getElementById('withdraw-amt-input');
+  const estSol = document.getElementById('withdraw-sol-est');
+  if (!input) return;
+  const val = parseFloat(input.value) || 0;
+  const sol = solUsdRate > 0 ? (val / solUsdRate).toFixed(4) : "0.0000";
+  if (estSol) estSol.textContent = `~${sol} SOL`;
+}
+
+// Cashier Terminal Modal Handlers (Predict.fun Architecture)
+const modalCashier = document.getElementById('modal-cashier');
+const cashierWalletLabel = document.getElementById('cashier-wallet-label');
 const vaultDepositInput = document.getElementById('vault-deposit-input');
+const btnCopyVaultAddress = document.getElementById('btn-copy-vault-address');
+const instantDepositAmount = document.getElementById('instant-deposit-amount');
+const btnConfirmInstantDeposit = document.getElementById('btn-confirm-instant-deposit');
+const withdrawAmtInput = document.getElementById('withdraw-amt-input');
+const withdrawDestInput = document.getElementById('withdraw-dest-input');
+const withdrawAvailableUsd = document.getElementById('withdraw-available-usd');
+const btnSubmitWithdraw = document.getElementById('btn-submit-withdraw');
+const btnOpenDeposit = document.getElementById('btn-open-deposit');
+const btnWithdraw = document.getElementById('btn-withdraw');
+
+window.switchCashierTab = function(tabName) {
+  document.querySelectorAll('.cashier-tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.cashier-view').forEach(view => view.classList.remove('active'));
+
+  const targetBtn = document.getElementById(`tab-btn-${tabName}`);
+  const targetView = document.getElementById(`view-${tabName}`);
+  if (targetBtn) targetBtn.classList.add('active');
+  if (targetView) targetView.classList.add('active');
+};
+
+window.openCashierModal = function(defaultTab = 'instant') {
+  if (cashierWalletLabel) {
+    if (phantomAddress) {
+      cashierWalletLabel.textContent = `👻 ${phantomAddress.substring(0, 6)}...${phantomAddress.substring(phantomAddress.length - 4)}`;
+      cashierWalletLabel.style.color = 'var(--emerald)';
+    } else {
+      cashierWalletLabel.textContent = 'Not connected (1-click connects Phantom)';
+      cashierWalletLabel.style.color = 'var(--cyan)';
+    }
+  }
+  if (withdrawAvailableUsd) {
+    withdrawAvailableUsd.textContent = `$${balanceReal.toFixed(2)} USD`;
+  }
+  if (phantomAddress && withdrawDestInput && !withdrawDestInput.value) {
+    withdrawDestInput.value = phantomAddress;
+  }
+  updateInstantPreview();
+  updateWithdrawPreview();
+  switchCashierTab(defaultTab);
+  if (modalCashier) modalCashier.classList.add('active');
+};
+
+window.closeCashierModal = function() {
+  if (modalCashier) modalCashier.classList.remove('active');
+};
+
+// Aliases for backwards compatibility
+window.closeDepositModal = window.closeCashierModal;
+window.closeWithdrawModal = window.closeCashierModal;
+
+window.setInstantDeposit = function(amountSol) {
+  if (instantDepositAmount) {
+    instantDepositAmount.value = amountSol.toFixed(2);
+    updateInstantPreview();
+  }
+};
+
+window.setWithdrawPercent = function(pct) {
+  if (withdrawAmtInput) {
+    const amt = Math.max(0, balanceReal * pct);
+    withdrawAmtInput.value = amt.toFixed(2);
+    updateWithdrawPreview();
+  }
+};
 
 if (btnOpenDeposit) {
-  btnOpenDeposit.addEventListener('click', () => {
-    modalDeposit.classList.add('active');
+  btnOpenDeposit.addEventListener('click', () => openCashierModal('instant'));
+}
+
+if (btnWithdraw) {
+  btnWithdraw.addEventListener('click', () => {
+    if (balanceReal <= 0.05) {
+      alert(`Your Real On-Chain balance is $${balanceReal.toFixed(2)} USD. Fund SOL to trade or withdraw accumulated earnings.`);
+      return;
+    }
+    openCashierModal('withdraw');
   });
 }
 
-window.closeDepositModal = function() {
-  modalDeposit.classList.remove('active');
-};
+if (instantDepositAmount) {
+  instantDepositAmount.addEventListener('input', updateInstantPreview);
+}
+
+if (withdrawAmtInput) {
+  withdrawAmtInput.addEventListener('input', updateWithdrawPreview);
+}
 
 if (btnCopyVaultAddress) {
   btnCopyVaultAddress.addEventListener('click', () => {
-    navigator.clipboard.writeText(vaultDepositInput.value);
-    btnCopyVaultAddress.textContent = '✅ Copied!';
-    setTimeout(() => { btnCopyVaultAddress.textContent = '📋 Copy'; }, 2000);
+    if (vaultDepositInput) {
+      navigator.clipboard.writeText(vaultDepositInput.value);
+      btnCopyVaultAddress.textContent = '✅ Copied!';
+      setTimeout(() => { btnCopyVaultAddress.textContent = '📋 Copy Address'; }, 2000);
+    }
   });
 }
 
@@ -299,6 +399,10 @@ window.quickDepositPhantom = async function(solAmount) {
       currentUserId = phantomAddress;
       localStorage.setItem('quant_user_id', currentUserId);
       userIdDisplay.textContent = `${phantomAddress.substring(0, 6)}...${phantomAddress.substring(phantomAddress.length - 4)}`;
+      if (cashierWalletLabel) {
+        cashierWalletLabel.textContent = `👻 ${phantomAddress.substring(0, 6)}...${phantomAddress.substring(phantomAddress.length - 4)}`;
+        cashierWalletLabel.style.color = 'var(--emerald)';
+      }
     } catch (e) {
       alert("Failed to connect Phantom: " + e.message);
       return;
@@ -329,38 +433,18 @@ window.quickDepositPhantom = async function(solAmount) {
 
     const { signature } = await window.phantom.solana.signAndSendTransaction(transaction);
     addLog(`🚀 Transaction broadcasted: ${signature.substring(0, 10)}... Awaiting on-chain confirmation...`, "hit");
-    closeDepositModal();
+    closeCashierModal();
   } catch (err) {
     alert("Transaction cancelled or failed: " + err.message);
   }
 };
 
-// Withdrawal Modal Handlers
-const modalWithdraw = document.getElementById('modal-withdraw');
-const btnWithdraw = document.getElementById('btn-withdraw');
-const withdrawDestInput = document.getElementById('withdraw-dest-input');
-const withdrawAmtInput = document.getElementById('withdraw-amt-input');
-const withdrawAvailableUsd = document.getElementById('withdraw-available-usd');
-const btnSubmitWithdraw = document.getElementById('btn-submit-withdraw');
-
-if (btnWithdraw) {
-  btnWithdraw.addEventListener('click', () => {
-    if (balanceReal <= 0.05) {
-      alert(`Your Real On-Chain balance is $${balanceReal.toFixed(2)} USD. Fund SOL to trade or withdraw accumulated earnings.`);
-      return;
-    }
-    withdrawAvailableUsd.textContent = `$${balanceReal.toFixed(2)} USD`;
-    if (phantomAddress && !withdrawDestInput.value) {
-      withdrawDestInput.value = phantomAddress;
-    }
-    withdrawAmtInput.value = balanceReal.toFixed(2);
-    modalWithdraw.classList.add('active');
+if (btnConfirmInstantDeposit) {
+  btnConfirmInstantDeposit.addEventListener('click', () => {
+    const val = parseFloat(instantDepositAmount ? instantDepositAmount.value : '0.10') || 0.10;
+    quickDepositPhantom(val);
   });
 }
-
-window.closeWithdrawModal = function() {
-  modalWithdraw.classList.remove('active');
-};
 
 if (btnSubmitWithdraw) {
   btnSubmitWithdraw.addEventListener('click', async () => {
@@ -395,7 +479,7 @@ if (btnSubmitWithdraw) {
         updateUserUI();
         addLog(`✅ On-Chain Settlement broadcasted: $${amt.toFixed(2)} USD sent to ${dest.substring(0, 6)}... | <a href="${data.explorerUrl}" target="_blank" style="color:#00F5FF;text-decoration:none;">View on Solscan ↗</a>`, "hit");
         alert("Settlement successful! Real SOL transaction broadcasted to Solana Mainnet.");
-        closeWithdrawModal();
+        closeCashierModal();
       } else {
         alert("Settlement error: " + (data.error || "Could not process request"));
       }
@@ -403,7 +487,7 @@ if (btnSubmitWithdraw) {
       alert("Network communication error: " + e.message);
     } finally {
       btnSubmitWithdraw.disabled = false;
-      btnSubmitWithdraw.textContent = "Confirm & Broadcast On-Chain Withdrawal";
+      btnSubmitWithdraw.textContent = "💸 Broadcast On-Chain Withdrawal";
     }
   });
 }
@@ -455,9 +539,18 @@ async function fetchProtocolStats() {
       cachedStats = data;
       if (data.vaultInfo && data.vaultInfo.sol !== undefined) {
         document.getElementById('vault-real-sol').textContent = `${data.vaultInfo.sol.toFixed(5)} SOL (~$${data.vaultInfo.usdEquivalent.toFixed(2)} USD)`;
+        if (data.vaultInfo.solUsdRate) {
+          solUsdRate = data.vaultInfo.solUsdRate;
+          updateInstantPreview();
+          updateWithdrawPreview();
+        }
         if (data.vaultInfo.address) {
           activeVaultAddress = data.vaultInfo.address;
           if (vaultDepositInput) vaultDepositInput.value = data.vaultInfo.address;
+          const qrCode = document.getElementById('vault-qr-code');
+          if (qrCode) {
+            qrCode.src = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=solana:${data.vaultInfo.address}`;
+          }
           const auditLinks = document.querySelectorAll('.audit-link, .proof-links a[href*="solscan"], #footer-solscan-link');
           auditLinks.forEach(link => {
             link.href = `https://solscan.io/account/${data.vaultInfo.address}`;

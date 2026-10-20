@@ -252,66 +252,142 @@
       </div>
     </footer>
 
-    <!-- DEPOSIT MODAL -->
-    <div class="modal-overlay" id="modal-deposit">
+    <!-- UNIFIED CASHIER MODAL (PREDICT.FUN / DRIFT STYLE) -->
+    <div class="modal-overlay" id="modal-cashier">
       <div class="modal-box">
-        <button class="modal-close" onclick="closeDepositModal()">&times;</button>
-        <h3 style="margin-bottom: 0.5rem; color: #00FFA3;">💰 Deposit Real SOL (Solana Mainnet)</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
-          Transfer SOL from any wallet (Phantom, Solflare, Bitso, Binance, Coinbase). Your deposit credits automatically in under 5 seconds.
-        </p>
+        <button class="modal-close" onclick="closeCashierModal()">&times;</button>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+          <h3 style="font-size: 1.05rem; font-family: var(--font-mono); font-weight: 800; display: flex; align-items: center; gap: 8px;">
+            <span style="color: var(--cyan);">⚡</span> QUANT CASHIER
+          </h3>
+          <span style="font-size: 0.7rem; font-family: var(--font-mono); color: var(--emerald); display: flex; align-items: center; gap: 4px;">
+            <span class="live-dot" style="width: 6px; height: 6px;"></span> Solana Mainnet
+          </span>
+        </div>
 
-        <div style="margin-top: 1rem;">
-          <label style="font-size: 0.72rem; color: var(--text-dim); font-weight: 700;">OFFICIAL MAINNET VAULT ADDRESS:</label>
-          <div class="deposit-address-box">
-            <input type="text" readonly id="vault-deposit-input" value="GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3">
-            <button class="btn btn-sm btn-secondary" id="btn-copy-vault-address">📋 Copy</button>
+        <!-- Cashier Navigation Tabs -->
+        <div class="cashier-tabs">
+          <button class="cashier-tab-btn active" id="tab-btn-instant" onclick="switchCashierTab('instant')">⚡ Instant Deposit</button>
+          <button class="cashier-tab-btn" id="tab-btn-manual" onclick="switchCashierTab('manual')">📲 Direct / QR</button>
+          <button class="cashier-tab-btn" id="tab-btn-withdraw" onclick="switchCashierTab('withdraw')">🚀 Withdraw</button>
+        </div>
+
+        <!-- TAB 1: INSTANT WEB3 DEPOSIT (PREDICT.FUN STYLE) -->
+        <div class="cashier-view active" id="view-instant">
+          <div class="wallet-status-bar">
+            <span style="color: var(--text-dim);">Connected Wallet:</span>
+            <span id="cashier-wallet-label" style="color: var(--cyan); font-weight: 700;">Not connected</span>
+          </div>
+
+          <label style="font-size: 0.72rem; color: var(--text-dim); font-weight: 700; margin-bottom: 4px; display: block;">SELECT OR ENTER DEPOSIT AMOUNT:</label>
+          <div class="amount-input-box">
+            <div class="amount-input-row">
+              <input type="number" id="instant-deposit-amount" min="0.01" step="0.05" value="0.10" placeholder="0.10">
+              <span class="amount-unit">SOL</span>
+            </div>
+            <div class="amount-usd-hint" id="instant-usd-preview">≈ $10.45 USD</div>
+          </div>
+
+          <div class="preset-pills">
+            <button class="preset-pill" onclick="setInstantDeposit(0.05)">0.05 SOL</button>
+            <button class="preset-pill" onclick="setInstantDeposit(0.10)">0.10 SOL</button>
+            <button class="preset-pill" onclick="setInstantDeposit(0.25)">0.25 SOL</button>
+            <button class="preset-pill" onclick="setInstantDeposit(0.50)">0.50 SOL</button>
+            <button class="preset-pill" onclick="setInstantDeposit(1.00)">1.00 SOL</button>
+          </div>
+
+          <!-- Transaction Summary Breakdown -->
+          <div class="breakdown-card">
+            <div class="breakdown-row">
+              <span>Transfer Destination:</span>
+              <span style="color: var(--text-main);">Verified Protocol Vault</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Network Gas Fee:</span>
+              <span style="color: var(--text-main);">~0.000005 SOL (&lt;$0.001)</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Trading Balance Credited:</span>
+              <span id="summary-credited-usd" style="color: var(--emerald); font-weight: 700;">+$10.45 USD</span>
+            </div>
+          </div>
+
+          <button class="btn btn-emerald" style="width: 100%; justify-content: center; padding: 0.85rem;" id="btn-confirm-instant-deposit">
+            ⚡ Confirm &amp; Deposit via Phantom
+          </button>
+
+          <div class="trust-badge">
+            🔒 Standard Solana System Transfer • Zero Approval Risk • Instant Execution
           </div>
         </div>
 
-        <div id="phantom-quick-deposit" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
-          <label style="font-size: 0.72rem; color: var(--cyan); font-weight: 700;">⚡ ONE-CLICK PHANTOM DEPOSIT:</label>
-          <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-            <button class="btn btn-sm btn-outline" onclick="quickDepositPhantom(0.05)">+0.05 SOL</button>
-            <button class="btn btn-sm btn-outline" onclick="quickDepositPhantom(0.10)">+0.10 SOL</button>
-            <button class="btn btn-sm btn-outline" onclick="quickDepositPhantom(0.25)">+0.25 SOL</button>
-            <button class="btn btn-sm btn-outline" onclick="quickDepositPhantom(0.50)">+0.50 SOL</button>
+        <!-- TAB 2: DIRECT TRANSFER & QR (BITSO, CEX, MOBILE) -->
+        <div class="cashier-view" id="view-manual">
+          <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.85rem;">
+            Deposit directly from Bitso, Binance, Coinbase, or any mobile Solana wallet.
+          </p>
+
+          <div style="display: flex; gap: 1rem; align-items: center; background: rgba(6, 8, 15, 0.6); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-subtle); margin-bottom: 1rem;">
+            <img id="vault-qr-code" src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&amp;data=solana:GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" alt="Vault QR" style="border-radius: 6px; background: #fff; padding: 4px; width: 110px; height: 110px;">
+            <div style="flex: 1;">
+              <span style="font-size: 0.68rem; color: var(--text-dim); font-weight: 700; display: block; margin-bottom: 4px;">SCAN QR OR SEND TO VAULT:</span>
+              <div class="deposit-address-box" style="margin: 0 0 8px 0; padding: 0.5rem 0.75rem;">
+                <input type="text" readonly id="vault-deposit-input" value="GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" style="font-size: 0.75rem;">
+              </div>
+              <button class="btn btn-sm btn-secondary" style="width: 100%; justify-content: center;" id="btn-copy-vault-address">📋 Copy Address</button>
+            </div>
+          </div>
+
+          <div style="font-size: 0.72rem; color: var(--text-dim); display: flex; justify-content: space-between;">
+            <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" style="color: var(--cyan); text-decoration: none;">View Vault on Solscan ↗</a>
+            <span style="color: var(--emerald);">✅ Automatic Detection (&lt;5s)</span>
           </div>
         </div>
 
-        <div style="margin-top: 1.25rem; font-size: 0.72rem; display: flex; justify-content: space-between;">
-          <a href="https://solscan.io/account/GCCfiWzgd29LuS63rCpBcwD1yko46TY4tsryCiihG9V3" target="_blank" style="color: #00F5FF;">View on Solscan ↗</a>
-          <span style="color: #00FFA3;">🛡️ Real-Time On-Chain Watcher Active</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- WITHDRAWAL MODAL -->
-    <div class="modal-overlay" id="modal-withdraw">
-      <div class="modal-box">
-        <button class="modal-close" onclick="closeWithdrawModal()">&times;</button>
-        <h3 style="margin-bottom: 0.5rem; color: #FFB800;">🚀 Instant On-Chain SOL Withdrawal</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
-          Transfer your settled real funds directly back to your Solana wallet on Mainnet with zero platform withdrawal fees.
-        </p>
-
-        <div style="margin: 1rem 0;">
-          <div style="font-size: 0.85rem; margin-bottom: 0.75rem;">
-            Available Real Balance: <strong class="text-green" id="withdraw-available-usd">$0.00 USD</strong>
+        <!-- TAB 3: INSTANT ON-CHAIN WITHDRAWAL -->
+        <div class="cashier-view" id="view-withdraw">
+          <div class="wallet-status-bar">
+            <span style="color: var(--text-dim);">Available Balance:</span>
+            <span class="text-green" id="withdraw-available-usd" style="font-weight: 800; font-size: 0.95rem;">$0.00 USD</span>
           </div>
+
           <div style="margin-bottom: 0.85rem;">
             <label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 4px; font-weight: 700;">DESTINATION SOLANA WALLET:</label>
-            <input type="text" id="withdraw-dest-input" placeholder="Your Solana wallet address (e.g. Phantom, Bitso)" style="width: 100%; padding: 0.65rem; border-radius: 8px; background: #06080F; border: 1px solid var(--border-subtle); color: #fff; font-family: var(--font-mono); font-size: 0.8rem; outline: none;">
+            <input type="text" id="withdraw-dest-input" placeholder="Your Solana wallet (Phantom, Bitso, etc.)" style="width: 100%; padding: 0.65rem; border-radius: 8px; background: #06080F; border: 1px solid var(--border-subtle); color: #fff; font-family: var(--font-mono); font-size: 0.8rem; outline: none;">
           </div>
-          <div>
-            <label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 4px; font-weight: 700;">AMOUNT TO WITHDRAW (USD):</label>
-            <input type="number" id="withdraw-amt-input" min="0.10" step="0.10" placeholder="e.g. 5.00" style="width: 100%; padding: 0.65rem; border-radius: 8px; background: #06080F; border: 1px solid var(--border-subtle); color: #fff; font-family: var(--font-mono); font-size: 0.8rem; outline: none;">
+
+          <label style="font-size: 0.72rem; color: var(--text-dim); font-weight: 700; margin-bottom: 4px; display: block;">AMOUNT TO WITHDRAW (USD):</label>
+          <div class="amount-input-box" style="margin-bottom: 0.5rem;">
+            <div class="amount-input-row">
+              <input type="number" id="withdraw-amt-input" min="0.10" step="0.10" placeholder="0.00">
+              <span class="amount-unit">USD</span>
+            </div>
           </div>
+
+          <div class="preset-pills">
+            <button class="preset-pill" onclick="setWithdrawPercent(0.25)">25%</button>
+            <button class="preset-pill" onclick="setWithdrawPercent(0.50)">50%</button>
+            <button class="preset-pill" onclick="setWithdrawPercent(0.75)">75%</button>
+            <button class="preset-pill" onclick="setWithdrawPercent(1.00)">100% (MAX)</button>
+          </div>
+
+          <div class="breakdown-card">
+            <div class="breakdown-row">
+              <span>Platform Withdrawal Fee:</span>
+              <span style="color: var(--emerald); font-weight: 700;">$0.00 (Zero Fee)</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Est. SOL Transferred:</span>
+              <span id="withdraw-sol-est" style="color: var(--text-main);">~0.0000 SOL</span>
+            </div>
+          </div>
+
+          <button class="btn btn-gold" style="width: 100%; justify-content: center; padding: 0.85rem;" id="btn-submit-withdraw">
+            🚀 Broadcast On-Chain Withdrawal
+          </button>
         </div>
 
-        <div class="modal-actions">
-          <button class="btn btn-gold" style="width: 100%; justify-content: center;" id="btn-submit-withdraw">Confirm & Broadcast On-Chain Withdrawal</button>
-        </div>
       </div>
     </div>
   </main>
