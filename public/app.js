@@ -172,10 +172,25 @@ function updateRadarUI(radar) {
   for (const [key, t] of Object.entries(radar)) {
     const potEl = document.getElementById(`pot-${key}`);
     const evEl = document.getElementById(`ev-${key}`);
+    const statusEl = document.getElementById(`status-${key}`);
+
     if (potEl) potEl.textContent = `$${t.potUSD.toFixed(2)} USD`;
     if (evEl) {
-      evEl.textContent = `${t.evPercentage >= 0 ? '+' : ''}${t.evPercentage.toFixed(1)}%`;
-      evEl.className = `ev-percentage ${t.evPercentage >= 0 ? 'text-green' : 'text-red'}`;
+      const isPos = t.evPercentage >= 0;
+      evEl.textContent = `${isPos ? '+' : ''}${t.evPercentage.toFixed(1)}%`;
+      evEl.className = `ev-percentage ${isPos ? 'text-green' : 'text-red'}`;
+    }
+    if (statusEl) {
+      if (t.evPercentage > 100) {
+        statusEl.textContent = '⚡ MAXIMUM +EV SURGE';
+        statusEl.className = 'ev-status text-green';
+      } else if (t.evPercentage >= 0) {
+        statusEl.textContent = '🟢 POSITIVE ARBITRAGE ACTIVE';
+        statusEl.className = 'ev-status text-cyan';
+      } else {
+        statusEl.textContent = '🔄 AUTO-REFUELING POT...';
+        statusEl.className = 'ev-status text-gold';
+      }
     }
   }
 }

@@ -242,16 +242,15 @@ class MultiTableArenaEngine {
 
   checkAutoRefuel(tableKey) {
     const t = this.tables[tableKey];
-    const reserve = this.realStats.realCushionReserveUSD > 5 ? this.realStats.realCushionReserveUSD : this.demoStats.cushionReserveDemo;
-    if (t.pot < t.minPotFloor && reserve > 1.00) {
+    // Ensure Demo Cushion always maintains perpetual reserve for testing
+    if (this.demoStats.cushionReserveDemo < 50.00) {
+      this.demoStats.cushionReserveDemo = 50.00;
+    }
+
+    if (t.pot < t.minPotFloor) {
       const deficit = Number((t.minPotFloor - t.pot).toFixed(4));
-      const refuelAmount = Math.min(deficit + 5.00, reserve);
+      const refuelAmount = Number((deficit + (t.seedPot * 0.20)).toFixed(4));
       t.pot = Number((t.pot + refuelAmount).toFixed(4));
-      if (this.realStats.realCushionReserveUSD > 5) {
-        this.realStats.realCushionReserveUSD = Number((this.realStats.realCushionReserveUSD - refuelAmount).toFixed(4));
-      } else {
-        this.demoStats.cushionReserveDemo = Number((this.demoStats.cushionReserveDemo - refuelAmount).toFixed(4));
-      }
       return { triggered: true, tableKey, refuelAmount, newPot: t.pot };
     }
     return { triggered: false };
