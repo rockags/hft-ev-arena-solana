@@ -1,6 +1,12 @@
 // Solana Quant Arena v2 — Institutional HFT Execution Client
 // Theme: Avantis / Drift / Hyperliquid Quant Terminal
 
+// Ensure Buffer polyfill is bound for Solana Web3
+if (typeof window !== 'undefined' && !window.Buffer && window.buffer && window.buffer.Buffer) {
+  window.Buffer = window.buffer.Buffer;
+  globalThis.Buffer = window.buffer.Buffer;
+}
+
 // Sanitize and isolate client identity
 let rawSavedId = localStorage.getItem('quant_user_id');
 if (!rawSavedId || rawSavedId.includes('3u6p') || rawSavedId === '3u6pHbfXqiDJLMxpLtXvUxGiC1Twwo2v9aaHBxo839GM') {
@@ -388,12 +394,24 @@ if (btnCopyVaultAddress) {
 
 // 1-Click Phantom Deposit
 window.quickDepositPhantom = async function(solAmount) {
+  if (typeof window !== 'undefined' && !window.Buffer && window.buffer && window.buffer.Buffer) {
+    window.Buffer = window.buffer.Buffer;
+    globalThis.Buffer = window.buffer.Buffer;
+  }
+
   if (!window.phantom || !window.phantom.solana || !window.phantom.solana.isPhantom) {
-    alert("Please unlock or install Phantom Wallet.");
+    alert("Please unlock or install Phantom Wallet from phantom.app");
     return;
   }
-  if (!phantomAddress) {
-    try {
+
+  const confirmBtn = document.getElementById('btn-confirm-instant-deposit');
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = "Connecting & Preparing Transaction...";
+  }
+
+  try {
+    if (!phantomAddress) {
       const resp = await window.phantom.solana.connect();
       phantomAddress = resp.publicKey.toString();
       currentUserId = phantomAddress;
@@ -403,18 +421,17 @@ window.quickDepositPhantom = async function(solAmount) {
         cashierWalletLabel.textContent = `👻 ${phantomAddress.substring(0, 6)}...${phantomAddress.substring(phantomAddress.length - 4)}`;
         cashierWalletLabel.style.color = 'var(--emerald)';
       }
-    } catch (e) {
-      alert("Failed to connect Phantom: " + e.message);
+    }
+
+    if (typeof solanaWeb3 === 'undefined') {
+      alert("Solana Web3 SDK is initializing. Please retry in 2 seconds.");
       return;
     }
-  }
 
-  if (typeof solanaWeb3 === 'undefined') {
-    alert("Loading Solana Web3 SDK... Please retry in 2 seconds.");
-    return;
-  }
+    if (confirmBtn) {
+      confirmBtn.textContent = "Sign in Phantom Wallet...";
+    }
 
-  try {
     addLog(`Initiating ${solAmount} SOL transfer via Phantom...`, "info");
     const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com", "confirmed");
     const lamports = Math.floor(solAmount * 1e9);
@@ -427,7 +444,21 @@ window.quickDepositPhantom = async function(solAmount) {
       })
     );
 
-    const { blockhash } = await connection.getLatestBlockhash();
+    // Fetch latest blockhash reliably (fast server proxy with fallback)
+    let blockhash;
+    try {
+      const bRes = await fetch('/api/blockhash');
+      const bData = await bRes.json();
+      if (bData.success && bData.blockhash) {
+        blockhash = bData.blockhash;
+      }
+    } catch (e) {}
+
+    if (!blockhash) {
+      const latest = await connection.getLatestBlockhash('confirmed');
+      blockhash = latest.blockhash;
+    }
+
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = new solanaWeb3.PublicKey(phantomAddress);
 
@@ -436,6 +467,11 @@ window.quickDepositPhantom = async function(solAmount) {
     closeCashierModal();
   } catch (err) {
     alert("Transaction cancelled or failed: " + err.message);
+  } finally {
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "⚡ Confirm & Deposit via Phantom";
+    }
   }
 };
 

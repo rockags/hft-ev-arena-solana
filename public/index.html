@@ -6,6 +6,14 @@
   <title>⚡ Solana Quant Arena v2 — High-Frequency +EV Protocol & HFT Swarm Engine</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Buffer Polyfill for Browser Solana Web3 Transactions -->
+  <script src="buffer.js"></script>
+  <script>
+    if (typeof window !== 'undefined' && window.buffer && window.buffer.Buffer) {
+      window.Buffer = window.buffer.Buffer;
+      globalThis.Buffer = window.buffer.Buffer;
+    }
+  </script>
   <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 </head>
 <body>

@@ -161,6 +161,18 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // 6. Fast Blockhash Proxy for Web3 Client Transactions
+  if (pathname === '/api/blockhash' && req.method === 'GET') {
+    try {
+      const { blockhash, lastValidBlockHeight } = await vault.connection.getLatestBlockhash('confirmed');
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true, blockhash, lastValidBlockHeight }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+  }
+
   // Serve static assets
   let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
