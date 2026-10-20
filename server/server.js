@@ -270,6 +270,7 @@ wss.on('connection', (ws) => {
             isVerifiedOnChain: player.isVerifiedOnChain,
             balanceReal: player.balanceReal,
             balanceDemo: player.balanceDemo,
+            balance: player.balanceReal > 0 ? player.balanceReal : player.balanceDemo,
             rakebackReal: player.rakebackReal,
             rakebackDemo: player.rakebackDemo,
             clientSeed: player.clientSeed,

@@ -101,7 +101,7 @@ class MultiTableArenaEngine {
         isVerifiedOnChain: false,
         // Balances strictly partitioned
         balanceReal: 0.00,       // Only from real Solana transfers
-        balanceDemo: 0.00,       // From virtual demo faucet
+        balanceDemo: 25.00,      // $25.00 Instant Welcome Sandbox Grant for immediate bot/user testing
         rakebackReal: 0.00,      // Real cashable rakeback
         rakebackDemo: 0.00,      // Demo rakeback
         rakebackClaimedReal: 0.00,

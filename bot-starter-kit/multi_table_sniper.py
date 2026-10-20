@@ -216,7 +216,7 @@ def on_message(ws, message):
     mtype = data.get("type")
 
     if mtype == "AUTH_SUCCESS":
-        balance = data.get("balance", 0.0)
+        balance = data.get("balanceDemo", data.get("balance", 0.0))
         rakeback_pending = data.get("rakebackPending", 0.0)
         current_radar = data.get("radar", {})
         print(f"✅ Autenticado como: {BOT_ID}")
@@ -272,7 +272,7 @@ def burst_loop(ws, table_key):
         if not is_bursting or balance < 0.10:
             break
         try:
-            ws.send(json.dumps({"action": "order", "table": table_key}))
+            ws.send(json.dumps({"action": "order", "table": table_key, "mode": "AUTO"}))
             time.sleep(0.04) # 25 req/sec
         except Exception:
             break
