@@ -198,9 +198,8 @@ def run_paper_trading():
     print(f"- Rakeback Acumulado  : +${rakeback_accumulated:.4f} USD (Cashback directo)")
     print(f"- Balance Final       : ${virtual_balance:.4f} USD")
     print("💡 Para operar en vivo:")
-    print("   1. Inicia el servidor: npm start en /server")
-    print("   2. Conecta tu Phantom en http://localhost:8080")
-    print("   3. Ejecuta el bot: python multi_table_sniper.py\n")
+    print("   1. Abre el Terminal Cuantitativo: https://gacha-protocol-628421927095.us-central1.run.app")
+    print("   2. Ejecuta el bot: python multi_table_sniper.py (Usa los $25.00 sandbox automáticos)\n")
     sys.exit(0)
 
 # -------------------------------------------------------------
@@ -223,7 +222,7 @@ def on_message(ws, message):
         print(f"💰 Balance: ${balance:.2f} USD | Rakeback: ${rakeback_pending:.4f} USD\n")
         if balance < 0.10:
             print("ℹ️ Estado: Standby (Sin saldo suficiente).")
-            print("💡 Puedes fondear saldo demo para pruebas desde el terminal web: http://localhost:8080\n")
+            print("💡 Puedes fondear saldo demo para pruebas desde el terminal web: https://gacha-protocol-628421927095.us-central1.run.app\n")
 
     elif mtype == "RADAR_TICK":
         current_radar = data.get("radar", {})

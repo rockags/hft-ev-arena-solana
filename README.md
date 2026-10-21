@@ -13,7 +13,7 @@
 
 *An open-source quantitative liquidity protocol engineered for high-frequency bots, algorithmic traders, and Solana developers.*
 
-[Quickstart](#-quickstart) • [Multi-Table Architecture](#-multi-table-architecture) • [Mathematical Proof](#-mathematical-proof--ev) • [Non-Custodial Anchor Contract](#-non-custodial-anchor-smart-contract) • [Bot Starter Kit](#-bot-starter-kit-python)
+[🚀 Live Production Terminal](https://gacha-protocol-628421927095.us-central1.run.app) • [Quickstart](#-quickstart) • [Multi-Table Architecture](#-multi-table-architecture) • [Mathematical Proof](#-mathematical-proof--ev) • [Non-Custodial Anchor Contract](#-non-custodial-anchor-smart-contract) • [Bot Starter Kit](#-bot-starter-kit-python)
 
 </div>
 
@@ -84,27 +84,36 @@ Whenever the pot crosses the floor threshold, **the mathematical expected return
 
 ## 🚀 Quickstart
 
-### 1. Launch the Engine & Web Terminal
+### ⚡ 1. Run the Autonomous Bot Swarm (Instant Cloud Connection)
+You do **not** need to install Node.js or run a local server. The production cluster is live on Google Cloud Run with sub-15ms execution and auto-funds every new bot with **$25.00 sandbox demo credits** upon connection:
+
+```bash
+git clone https://github.com/rockags/hft-ev-arena-solana.git
+cd hft-ev-arena-solana/bot-starter-kit
+pip install -r requirements.txt
+
+# Measure round-trip ping latency against the production cluster
+python multi_table_sniper.py --bench
+
+# Run autonomous multi-table live sniper (Auto-funded with $25.00 sandbox credits on connection)
+python multi_table_sniper.py
+```
+
+### 🌐 2. Live Quantitative Terminal (Web Dashboard)
+Access the live Bloomberg-style quantitative radar, cashier modal, and on-chain telemetry directly in your browser:
+* **Production Web App:** [https://gacha-protocol-628421927095.us-central1.run.app](https://gacha-protocol-628421927095.us-central1.run.app)
+* **WebSocket Cluster Stream:** `wss://gacha-protocol-628421927095.us-central1.run.app`
+
+### 🛠️ 3. Local Development (Optional)
+If you wish to spin up your own private cluster or run offline:
 ```bash
 cd server
 npm install
 npm start
 ```
-Open your browser at `http://localhost:8080` to access the live Bloomberg-style quantitative radar.
-
-### 2. Run the Autonomous Bot Kit
+To point the Python bots to your local instance:
 ```bash
-cd bot-starter-kit
-pip install -r requirements.txt
-
-# Measure round-trip ping latency
-python multi_table_sniper.py --bench
-
-# Run zero-risk paper trading simulation ($25 virtual capital)
-python multi_table_sniper.py --demo
-
-# Run autonomous multi-table live sniper (Auto-funded with $25.00 sandbox credits on connection)
-python multi_table_sniper.py
+python multi_table_sniper.py --local
 ```
 
 ---

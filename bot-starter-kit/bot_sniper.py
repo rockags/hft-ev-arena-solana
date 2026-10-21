@@ -40,7 +40,8 @@ except ImportError:
     print("Install via: pip install websocket-client")
     sys.exit(1)
 
-SERVER_WS = "wss://gacha-protocol-628421927095.us-central1.run.app/ws"
+# Default Live Server Endpoint (Google Cloud Run High-Frequency Cluster)
+SERVER_WS = "ws://localhost:8080/ws" if "--local" in sys.argv else "wss://gacha-protocol-628421927095.us-central1.run.app/ws"
 BOT_ID = f"python_sniper_{int(time.time()) % 10000}"
 EV_THRESHOLD = 5.00  # Trigger sniper burst when Pot >= $5.00 USD
 PACK_TIER = "gold" if "--gold" in sys.argv else "bronze"
